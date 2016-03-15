@@ -1,0 +1,40 @@
+<?php
+
+function getWeatherDoD()
+{
+	$html = '';
+	
+	try
+	{
+		$weather = getWeatherXML('/web/feeds/weatherfeed.txt');
+	
+		$html .= '<div class="weather">';
+		$html .= '<strong>Washington, D.C.</strong>';
+		$html .= '<a href="http://us.rd.yahoo.com/dailynews/rss/weather/Washington__DC/*http://weather.yahoo.com/forecast/USDC0001_f.html" title="Yahoo Weather for Washington, DC"><img src="' . base_path() . 'feeds/weather/' . $weather['code'] . '.gif" class="weather-condition" title="' . $weather['condition'] . '" alt="' . $weather['condition'] . '" width="46" height="46" /></a>';
+		$html .= '<span class="temp">' . $weather['temp'] . '&ordm;F</span>';
+		$html .= '</div>';
+	}
+	catch(Exception $e)
+	{
+		watchdog("weather","getWeatherDoD " . $e->getMessage());
+	}
+	
+	return $html;
+}
+
+function getWeatherXML($file)
+{
+	$weather = '';
+	
+	try
+	{
+		$json = file_get_contents($file);
+		$weather = json_decode($json, true);
+	}
+	catch(Exception $e)
+	{
+		watchdog("weather","getWeatherXML: " . $e->getMessage());
+	}
+	
+	return $weather;
+}

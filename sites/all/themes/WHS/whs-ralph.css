@@ -1,0 +1,720 @@
+/*.view-info-grid-img{
+
+width:165px;
+
+}*/
+
+
+
+.view-directorate-information .views-field-field-image img{
+
+width:165px !important;
+
+}
+
+
+
+.view-info-grid-link-title{
+
+}
+
+
+
+.view-directorate-information .view-info-grid-body{
+
+width:190px !important;
+
+font-color:#707070 !important;
+
+padding-right:-80px !important;
+
+}
+
+
+
+.view-info-grid-link{
+
+}
+
+
+
+.view-directorate-information .views-field-field-related-links{
+
+border: 1px solid #707070 !important;
+
+padding:5px;
+
+width:70px;
+
+-moz-border-radius: 25px;
+
+color: #707070 !important;
+
+border-radius: 5px 10px 5px 10px / 10px 5px 10px 5px;
+
+text-align:center;
+
+margin-bottom:20px;
+
+}
+
+
+
+.view-directorate-information{
+
+color:#707070	!important;
+
+}
+
+
+
+#quicktabs-whs_home_page_service_table{
+
+background: none !important;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+.view-directorate-information a{
+
+color: #707070 !important;
+
+text-decoration:none !important;
+
+}
+
+
+
+#menu{
+
+padding-bottom:30px;
+padding-top:10px;
+}
+
+
+
+.user-favorites{
+
+padding-top:25px;
+
+background-color:#b0e8dd !important;
+
+}
+
+
+
+.favorite-list{
+
+background-color:#b0e8dd !important;
+
+}
+
+
+
+.directorate_announcements{
+
+margin-top:10px;
+
+}
+
+
+
+.directorate_announcements .wrap-corner{
+
+background-color:#b0e8dd !important;
+
+-moz-border-radius: 25px;
+
+color: #707070 !important;
+
+border-radius: 5px 10px 5px 10px / 10px 5px 10px 5px !important;
+
+box-shadow: 10px 10px 5px #eaeaea;
+
+}
+
+
+
+.directorate_announcements .rounded-corner{
+
+background-color:#b0e8dd !important;
+
+-moz-border-radius: 25px;
+
+color: #707070 !important;
+
+border-radius: 5px 10px 5px 10px / 10px 5px 10px 5px !important;
+
+}
+
+
+
+.directorate_announcements .r-edge{
+
+-moz-border-radius: 25px;
+
+border-radius: 5px 10px 5px 10px / 10px 5px 10px 5px !important;
+
+  padding: 10px !important;
+
+}
+
+
+
+.directorate_announcements .rounded-corner .r-edge{
+
+background-image: none !important;
+
+}
+
+
+
+.directorate_announcements .rounded-corner .l-edge{
+
+background-image: none !important;
+
+}
+
+
+
+.directorate_announcements h3{
+
+background-color:#005A8C;
+
+}
+
+
+
+.directorate_announcements .b-edge{
+
+display:none;
+
+}
+
+
+
+.directorate_announcements .t-edge{
+
+display:none;
+
+}
+
+
+
+.region-alert-bar{
+
+margin-top:-10px !important;
+
+}
+
+
+
+/*#block-indicator-block-opmIndicator-block{
+
+position: static !important;
+
+margin-top:40px !important;
+
+width:300px !important;
+
+}*/
+
+
+
+#block-indicator-block-opmIndicator-block{
+     width: 175px !important;
+    top: -60px;
+    position: relative;
+    float: right;
+    right: 75px;
+}
+}
+
+.block-weather-block{
+    float: right;
+}
+
+#block-weather-block-weather-block{
+    	position: absolute !important;
+    	width: 100% !important;
+	/*top:115px;*/
+}
+
+#block-weather-block-weather-block .weather{
+    float: right;
+    right: 35px;
+    position: absolute;
+    top: -60px;
+}
+
+
+
+#block-weather-block-weather-block .temp{
+
+margin-top:10px;
+
+margin-left:20px;
+
+}
+
+
+
+#block-indicator-block-opmIndicator-block .status span{
+
+margin-top:-15px !important;
+
+
+
+}
+
+
+
+.crumb_element{
+
+padding-bottom:20px;
+
+font-weight: bold;
+
+}
+
+
+
+.breadcrumbs{
+
+border: 1px solid #eaeaea;
+
+filter: alpha(opacity=40); /* For IE8 and earlier */
+
+border-radius: 5px 10px 5px 10px / 10px 5px 10px 5px !important;
+
+padding-top:5px;
+
+padding-bottom:5px;
+
+padding-left:10px;
+
+margin-bottom:5px;
+
+}
+
+
+
+.view-id-service_category_top_level_list{
+
+padding-left:15px;
+
+font-weight:bold;
+
+}
+
+
+
+.view-id-service_category_top_level_list .service_category_name{
+
+color:#1858A0 !important;
+
+font-size:19px;
+
+}
+
+
+
+.view-id-service_category_top_level_list .view-content a{
+
+color: #000000 !important;
+
+}
+
+
+
+.view-id-service_category_top_level_list #edit-name{
+
+height: 23px !important;
+
+}
+
+
+
+
+
+.dir_top_middle{
+
+position:absolute !important;
+
+margin-left:45px !important;
+
+margin-top:140px;
+
+text-align:center;
+
+
+
+}
+
+
+
+.dir_top_right img{
+
+/*margin-left:20px !important;*/
+
+
+
+}
+
+
+
+.dir_top_right{
+
+
+
+}
+
+
+
+
+
+.default_name{
+
+	/*Controls the display of the default title/name of the director (in the information box, homepage)*/
+
+	text-align:center;
+
+}
+
+
+
+
+
+.view-service-program-main{
+
+padding-top:30px !important;
+
+}
+
+
+
+
+
+
+
+.service_program_main_header{
+
+margin-top:380px !important;
+
+font-size:30px!important;
+
+/*margin-left:80px !important;*/
+
+color:#43688E;
+
+background-image:none !important;
+
+font-weight:bold;
+
+
+
+}
+
+
+
+.service_program_main_descrip{
+
+width:500px;
+
+font-size:16px;
+
+}
+
+
+
+.view-serivce-program-landing-page-eligibility-list tr td, tr th{
+
+padding-top: 25px;
+
+}
+
+
+
+.view-serivce-program-landing-page-eligibility-list{
+
+margin-left:40px;
+
+margin-top:-30px;
+
+}
+
+
+
+
+
+.eligible_img{
+
+margin-left:40%;
+
+}
+
+
+
+.eligible_img_title{
+
+text-align:center !important;
+
+
+
+}
+
+
+
+/*
+
+.eligible_img img{
+
+display:block;
+
+width: 40px !important;
+
+height: 40px !important;
+
+margin-left:auto !important;
+
+margin-top:20px !important;
+
+margin-right:auto !important;
+
+}
+
+
+
+
+
+.eligible_img_header{
+
+font-weight:bold;
+
+position:absolute !important;
+
+margin-top:65px; !important;
+
+margin-left:-55px;
+
+}
+
+*/
+
+
+
+.views-field-field-related-links{
+
+margin-top:20px;
+
+margin-left:20px;
+
+}
+
+
+
+
+
+.views-field-field-related-links table{
+
+width:400px;
+
+}
+
+
+
+
+
+#mainwrapper .view-service-program-landing-page-contact-us{
+
+background:none !important;
+
+border:none !important;
+
+box-shadow:none !important;
+
+width:500px;
+
+}
+
+
+
+.service_program_main_img{
+
+position:absolute;
+
+width:50px !important;
+
+height:50px !important;
+
+margin-top:-15px !important;
+
+}
+
+
+
+.view-service-program-related-links{
+
+margin-top:20px;
+
+margin-left:40px;
+
+}
+
+
+
+.panels-flexible-region-25-directorate_tools .panel-pane .category_menu_item{
+
+border:none !important;
+
+}
+
+
+
+.panels-flexible-region-25-directorate_tools .panel-pane .category_menu_item hover{
+
+border:none !important;
+
+}
+
+
+
+.panels-flexible-region-25-directorate_tools .panel-pane .category_menu_item{
+
+border:none;
+
+}
+
+
+
+.category_menu_item:hover{
+
+background:none !important;
+
+border:none !important;
+
+}
+
+
+
+span.category_menu_item:hover{
+
+background:none !important;
+
+border:none !important;
+
+}
+
+
+
+.ui-tabs-nav .front .content-middle .content .block ul{
+
+height:50px;
+
+}
+
+
+
+
+.ui-tabs-nav{
+
+height:50px !important;
+
+}
+
+
+
+.views-field-field-description-of-the-sub-pag{
+
+margin-top:30px;
+
+}
+
+
+
+
+
+.view-services-program-sub-page-body{
+
+width:500px !important;
+
+margin-top:-40px;
+
+padding-left:30px;
+
+padding-bottom:30px;
+
+}
+
+
+
+.views-field-field-tabs{
+
+
+
+}
+
+
+
+#quicktabs-whs_home_page_service_table li{
+
+height:10px;
+
+
+
+}
+
+
+
+.view-service-program-detail-tabs .ui-widget-header{  
+
+margin-top:-40px;
+
+height:0px;
+
+margin-bottom:-13px;
+
+margin-left:-30px;
+
+}
+
+
+
+.service-sub-program .ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited{
+
+background-image:none !important;
+
+}
+
+
+
+.service-sub-program{
+
+}
+
+
+
+#quicktabs-whs_home_page_service_table ul.quicktabs-tabs{
+
+padding-top:1px !important;
+
+}
+
+
+
+
+
+.view-id-service_program_detail_tabs .view-content p{
+
+font-size:13px !important;
+
+}

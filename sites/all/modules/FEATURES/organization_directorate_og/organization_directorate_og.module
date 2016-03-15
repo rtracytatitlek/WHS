@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Organization-Directorate OG feature.
+ */
+
+include_once 'organization_directorate_og.features.inc';

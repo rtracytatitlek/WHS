@@ -1,0 +1,15 @@
+name = User Favorite Links
+description = Allows users to have favorite links
+package = Custom
+core = 7.x
+project = "custom"
+
+dependencies[] = views
+
+;stylesheets[all][] = css/favorite.css
+;scripts[] = js/favorite.js
+;;files[] = theme/views--user_favorite_links.tpl.php
+ 
+
+
+ 

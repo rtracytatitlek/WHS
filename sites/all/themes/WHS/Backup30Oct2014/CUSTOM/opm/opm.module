@@ -1,0 +1,40 @@
+<?php
+
+function getOPMStatus()
+{
+	$html = '';
+	
+	try
+	{
+		$opm = getOPMXML('/web/feeds/opmfeed.txt');
+	
+		$html .= '<div class="opm">';
+		$html .= '<strong>OPM Status</strong>';
+		$html .= '<a href="http://www.opm.gov/policy-data-oversight/snow-dismissal-procedures/current-status/" title="OPM Current Status"><img class="left" src="' . base_path() . 'sites/all/modules/custom/opm/images/opm-' . $opm['status'] . '.png" height="30" width="30" alt="OPM Status: ' . ucfirst($opm['status']) . '" title="OPM Status: ' . ucfirst($opm['status']) . '" />';
+		$html .= '<span class="status">' . ucfirst($opm['status']) . '</span></a>';
+		$html .= '</div>';
+	}
+	catch(Exception $e)
+	{
+		watchdog("opm","getOPMStatus " . $e->getMessage());
+	}
+	
+	return $html;
+}
+
+function getOPMXML($file)
+{
+	$opm = '';
+	
+	try
+	{
+		$json = file_get_contents($file);
+		$opm = json_decode($json, true);
+	}
+	catch(Exception $e)
+	{
+		watchdog("opm","getOPMXML: " . $e->getMessage());
+	}
+	
+	return $opm;
+}

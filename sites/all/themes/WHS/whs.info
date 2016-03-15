@@ -1,0 +1,57 @@
+; $Id: WHS.info,v 1.9.2.3 2010/11/25 01:16:24 Hanover Exp $
+
+name = WHS Custom Theme
+description = Custom Theme based on DANPRO underlying theme.
+engine = phptemplate
+
+
+stylesheets[all][] = style.css
+stylesheets[all][] = whs.css
+stylesheets[all][] = whs-km.css
+stylesheets[all][] = whs-ralph.css
+stylesheets[all][] = whs-directorate.css
+stylesheets[all][] = whs-tz.css
+stylesheets[all][] = style.ie6.css
+stylesheets[all][] = style.ie8.css
+
+
+;Search Regions
+regions[top_middle_search_box] = Top Middle Search region
+regions[top_left_search_box] = Top Left Search region
+regions[search_box] = Search region
+
+;Menu
+regions[preface_first] = Preface first
+regions[superfish_menu] = Superfish menu
+regions[page_top] = Page top
+regions[alert_bar] = Alert Message
+regions[sidebar_first] = Left sidebar
+regions[sidebar_second] = Right sidebar
+
+regions[content_top] = Content top
+regions[call_to_action]=Call to Action
+
+regions[help] = Help
+
+regions[top_classification] = Top classification bar
+regions[content] = Main content
+regions[content_bottom] = Content bottom
+regions[bottom_first] = Bottom first
+regions[bottom_middle] = Bottom middle
+regions[bottom_last] = Bottom last
+regions[footer] = Footer
+
+regions[bottom_classification] = Bottom classification bar
+
+regions[page_bottom] = Page bottom
+
+
+scripts[] = scripts/hoverIntent.js
+scripts[] = scripts/superfish.js
+scripts[] = scripts/whs_custom.js
+
+version = "7.x-1.0"
+core = "7.x"
+project = "WHS Custom Theme"
+datestamp = "1294312858"
+

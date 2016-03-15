@@ -1,0 +1,69 @@
+<?php
+
+function getOPMStatus()
+{
+	//Set Vars
+	$final = '';
+	$page ='';
+	$pos1=0;
+	$matches;
+	$text='';
+	$img = '/sites/all/themes/danland/whsmil/images/status.png';
+	$link= 'http://www.opm.gov/policy-data-oversight/snow-dismissal-procedures/current-status';
+	$xml_link = 'http://www.opm.gov/xml/operatingstatus.xml';
+	$color = '';
+	
+	try
+	{
+		//Get OPM RSS Feed
+		$page = file_get_contents($xml_link);
+		
+		//Preg Match on Tags to Grab Data
+		$pos1 = preg_match('/\<OperatingStatus\>(.+?)\<\/OperatingStatus\>/s', $page, $matches);
+		$status= strtolower(strip_tags($matches[0]));
+        $pos1 = preg_match('/\<ShortStatusMessage\>(.+?)\<\/ShortStatusMessage\>/s', $page, $matches);
+        $text= strip_tags($matches[0]);
+		
+		//If Opm.Gov is innacessible display default icon
+		if ($status == '')
+		{
+			$status='open';
+			$text = 'There is an issue with accessing Opm.Gov';
+			
+			//Alert administrators
+			
+		}
+		else
+		{
+			//Choose proper image for status
+			switch($status)
+			{
+				case "closed":
+					$img = "/sites/all/modules/custom/opm/images/red.png";
+					$color = "red";
+					break;
+				case "open":
+					$img = "/sites/all/modules/custom/opm/images/green.png";
+					$color="green";
+					break;
+				case "alert":
+					$img = "/sites/all/modules/custom/opm/images/yellow.png";
+					$color="yellow";
+					break;
+				default:
+					$img = "/sites/all/modules/custom/opm/images/status.png";
+					$color="blue";
+			}
+		}
+		
+		$final = "<div class= " . $status . ">";
+		$final .= "<a href=". $link ."><img src=".$img. " alt='".$text ."' title='".$text ."' longdesc='".$text."' />";
+		$final .= "<div class='operatingstatus " .  $status . " " . $color ."' >" . $status . "</div></a>";
+		 $final .= "</div>";
+ 		}
+		catch(Exception $e)
+		{
+			watchdog("OPM",$e->getMessage());
+		}
+		return $final;
+}

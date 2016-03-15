@@ -1,0 +1,7 @@
+name = Weather DoD
+description = Weather using yahoo API
+core = 7.x 
+project = "custom"
+package = Custom
+
+ 

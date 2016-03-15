@@ -1,0 +1,89 @@
+/* Hide extraneous text/toolbars on pop up windows */
+.js .page-node-add-user-favorite-links , .js body, .js body[style]
+{
+	padding-top: 0px !important;
+}
+.js .page-node-add-user-favorite-links  #toolbar, .js .page-node-add-user-favorite-links  .vertical-tabs,
+.js .page-node-add-user-favorite-links .edit-field-link-und-0 , 
+.js .page-node-add-user-favorite-links .description,
+.js .node-type-user-favorite-links #toolbar, .js .node-type-user-favorite-links .vertical-tabs, .js .node-type-user-favorite-links .description ,
+.js #edit-delete
+{
+	display:none;
+}
+
+/* Possible ways to style the linkbutton */
+
+/*1 - Make font smaller on footer links */
+.view-user-favorite-links .view-footer .linkbutton 
+{
+	font-size: 10px;
+	padding-right: 5px;
+}
+
+.view-user-favorite-links  .view-footer  
+{
+	font-size: 10px;
+	text-align: center;
+}
+
+/*2 - Turn links into buttons 
+.view-user-favorite-links  .view-footer .linkbutton {
+	border-radius: 3px;
+	box-shadow: 0 1px 1px #999;
+	color: #fff;
+	display: inline-block;
+	font-size: 12px;
+
+	background-color: #2b4170; 
+	background: -moz-linear-gradient(top, #3b5998, #2b4170);
+	background: -ms-linear-gradient(top, #3b5998, #2b4170);
+	background: -webkit-linear-gradient(top, #3b5998, #2b4170);
+	border: 1px solid #2b4170;
+	text-shadow: 0 -1px -1px #1f2f52;
+	text-decoration: none;
+
+}
+.page-user-favorite  .view-footer .linkbutton ,
+.view-user-favorite-links    .deletelink  a ,
+.view-user-favorite-links    .editink a ,
+{
+	padding: 2px 4px;
+}
+.view-user-favorite-links  .view-footer .linkbutton:hover {
+	background-color: #3b5998;  
+	background: -moz-linear-gradient(top, #2b4170, #3b5998);
+	background: -ms-linear-gradient(top, #2b4170, #3b5998);
+	background: -webkit-linear-gradient(top, #2b4170, #3b5998);
+	text-decoration: none;
+}
+
+.view-user-favorite-links    .deletelink  a {
+ color: white;
+	background-color: #FF0000;
+	background: -moz-linear-gradient(top, #FF0000, #880000 );
+	background: -ms-linear-gradient(top, #FF0000, # 880000 );
+	background: -webkit-linear-gradient(top, #FF0000, #880000 );	
+}
+.view-user-favorite-links   .deletelink  a:hover {
+	background-color: #FF0000;
+	background: -moz-linear-gradient(top, #880000 , #600000 );
+	background: -ms-linear-gradient(top,  # 880000 , #600000 );
+	background: -webkit-linear-gradient(top,  #880000 , #600000 );	
+}
+
+
+.view-user-favorite-links    .editlink  a {
+ color: white;
+	background-color: #009900;
+	background: -moz-linear-gradient(top, #006600, #009900 );
+	background: -ms-linear-gradient(top, #006600, # 009900 );
+	background: -webkit-linear-gradient(top, #006600, #009900 );	
+}
+.view-user-favorite-links   .editlink  a:hover {
+	background-color: #009900;
+	background: -moz-linear-gradient(top, #009900 , #003300 );
+	background: -ms-linear-gradient(top,  #009900, #003300 );
+	background: -webkit-linear-gradient(top,  #009900 , #003300 );	
+}
+*/

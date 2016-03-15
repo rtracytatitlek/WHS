@@ -1,0 +1,111 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\sa200\sl276\slmult1\lang9\f0\fs22{\field{\*\fldinst{HYPERLINK "http://solutions.developer.com/ms/web-dev/sql-server/using-drupal-7-with-sql-server.html"}}{\fldrslt{\ul\cf1 http://solutions.developer.com/ms/web-dev/sql-server/using-drupal-7-with-sql-server.html}}}\f0\fs22\line\par
+In making Microsoft\'ae Windows\'ae a go-to platform for non-.NET\'ae technologies like PHP and Ruby, Microsoft has been pumping a lot of resources and ingenuity into its open source initiatives. PHP developers stand to benefit the most from these efforts. Those developers accustomed to the MySQL/PHP part of the LAMP stack may think changing Linux/Apache to Windows/IIS is a little, well, WIMPy. But thanks to the Web Platform Installer, both PHP and MySQL have become fully automated painless installs. In addition, deploying popular PHP content management apps like Drupal to IIS is as easy as selecting the app from a menu and walking through a set of configuration prompts.\par
+\par
+Get Started\par
+Install Drupal for Windows\par
+\par
+Get the Code Snippet Embed Instructions for Drupal\par
+\par
+Installing and Running PHP Applications on Windows (Including Installing Drupal or Wordpress with Web PI)\par
+\par
+Customizing the PHP Applications on Windows (Drupal)\par
+\par
+This being Microsoft, one would imagine all this PHP would play well with SQL Server\'ae as well as MySQL. And one would be right. Not only is SQL Server Express a free install, but the core database engine is the same for all editions of SQL Server. In addition, the new PDO (PHP Data Objects) SQL Server driver allows you to hook up your PHP apps to SQL Server like you would to MySQL or another database. (Check out this walkthrough to get started using SQL Server Express with PHP.)\par
+\par
+Now, from the generous folks at Commerce Guys comes a Drupal 7 install that is ready and waiting for SQL Server (including the Express edition), thanks to a significantly improved database abstraction layer.\par
+How It Works\par
+The code for Drupal abstracts out the database layer, which provides query support and schema management. This lets the developer (or the Drupal install routine) connect to any of the supported databases, including MySQL, PostgreSQL, SQLLite, and now SQL Server, without having to alter the code base. The database layer is extensible via database specific modules that implement the functionality required. The database layer thus connects with the database engine by way of the PDO driver.\par
+\par
+In this case, the API layer includes both the SQLSRV Native API (php_sqlsrv.dll) and the PDO API (php_pdo_sqlsrv.dll), which are kept separate to prevent PDO-spec protocol from polluting the SQL Server API.\par
+\par
+When Microsoft decided to add the PDO driver, they refined their existing architecture which was already built on their robust and performant ODBC library. They re-architected their driver codebase into a functional layer with a thin API layer on top. Essentially, the functional layer has been compiled into a static library which is included alongside the API layer compilation in a single driver DLL. This allows them to make modifications or add new functionality a single time, then expose that functionality through different APIs. While doing this, they added a few new features worth noting, it:\par
+\par
+    supports forward-only and scrollable cursors\par
+    has improved LOB streaming\par
+    supports named parameters\par
+    supports bound parameters and columns\par
+    allows encoding per column / parameter\par
+    uses UTF-8 encoding by default\par
+    supports SQL Azure\par
+\par
+Most recently available with Drupal 7 is the database abstraction layer that interfaces with the SQL Server Native and PDO APIs. It includes these features:\par
+\par
+    a query builder\par
+    support for the MERGE keyword (using a combination of INSERT and UPDATE queries under the hood)\par
+    different fetching modes\par
+    transactions\par
+    master/slave replication\par
+    concurrent connections across multiple, different database engines\par
+\par
+The database layer is not without its limitations. Most of these are due to the current iteration of the driver itself, not the database. For example, the driver doesn't pre-fetch, but instead buffers query results in php. But like this example, any limitations you do bump into will probably be in the dark corners of your application and not all that impactful. Your biggest limitation will be version \emdash  Drupal 7 itself requires SQL Server 2008 or SQL Server Express 2008.\par
+Installing Drupal with SQL Server 2008\par
+Unfortunately the dead-simple easy-to-use Web Platform Installer doesn't yet enable the SQL Server option with the Drupal application install. However, you can still get all of your pre-requisites in place. From there you have three basic options:\par
+\par
+    Automatic install of Drupal 7 package\par
+    Manual install of Drupal 7 package\par
+    Conversion of existing MySQL database\par
+\par
+Regardless of the process you end up using, you'll need the same pre-requisites:\par
+\par
+    IIS\par
+    SQL Server Express 2008\par
+    PHP with WinCache\par
+    PDO for SQL Server\par
+    FastCGI\par
+\par
+To get these in place, download and install the Web Platform Installer.\par
+\par
+    Under the Web Platform tab, click Customize under Frameworks and Runtimes. Under PHP select the following:\par
+        Windows Cache Extension\par
+        PHP (current version) \emdash  this will automatically download and install the latest stable and tested version of PHP to \\program files\\php. Along with installing the binaries, the Installer enables FastCGI in IIS\par
+        .\par
+        Note: PHP Manager for IIS is handy if you're going to do more PHP work, but not necessary to install Drupal. \par
+    Under the Web Platform tab, click Customize under Database. Select the following:\par
+        Microsoft Drivers for PHP for SQL Server 2.0 \emdash  this adds php_sqlsrv.dll and php_pdo_sqlsrv.dll to \\program files\\php\\ext, making them available to Drupal\par
+        SQL Server Express 2008 (if you don't already have it)\par
+        SQL Server 2008 Management Studio Express (in case you need to build, view, or alter the database manually)\par
+\par
+    Note: Download SQL Server Migration Assistant for MySQL if you're already working with MySQL and want to make the switch to SQL Server, for example if you're already using Drupal.\par
+\par
+Regarding the Migration Assistant, if you wanted to use Drupal 6 with MySQL as your database, you could actually continue using the Web Platform Installer. Then theoretically you could then use the Migration Assistant to convert the content database to SQL Server before adding the additional drivers and updating to Drupal 7. But this is all a bit kludgey and unnecessary given the prepackaged install files available to you. The Migration Assistant really comes into play when you're already using MySQL for your PHP app and want to switch over to SQL Server. Incidentally, this is Option #3 mentioned at the top of this section.\par
+\par
+With PHP installed and SQL Server Express installed, you're ready to install Drupal 7. Go to Microsoft's Drupal page and click "Install Drupal 7 with SQL Server" on the left.\par
+\par
+You'll notice that the first instruction is to "Prepare your clean Windows installation." You just did that, so move on to the second instruction, "Custom Drupal 7 package." This downloads "drupal-7.x-sqlsrv-bundle-alpha1.zip" (current name), which includes both Drupal 7 and the Drupal 7 SQL Server database layer, specifically the contents of \\includes\\database\\sqlsrv.\par
+\par
+To go with the automatic install, unzip the download and run DeployDrupalOnSqlServer. This kicks off a series of console batches that sets up the SQL Server database, copies the Drupal app files, and configures PHP to accommodate the new SQL Server drivers.\par
+\par
+If something goes wrong with the automatic install, or you just like to keep your hands on things, you can perform a manual install instead. To do this, take the following steps (borrowed from "Installing Drupal 7 on Sql Server.docx", included in the zip download):\par
+\par
+    Create your new Drupal web site, both in your file structure and in IIS\par
+\par
+    Create an empty SQL Server database. Add access rights for anon users.\par
+\par
+    Copy the contents of the drupal folder from the zip file to the new site. Make sure your anon users have write permissions to the site and default subdirectory.\par
+\par
+    Confirm that php_wincache.dll and php_pdo_sqlsrv.dll are in the ext directory of your php installation. The Web Platform Installer should have added these files already to c:\\program files\\php\\ext.\par
+\par
+    Edit your php.ini file. At the end of it, where extensions are being defined, add the following:\par
+\par
+    Extension=php_wincache.dll\par
+    Extension=php_pdo_sqlsrv.dll \par
+\par
+With your system configured correctly, you should be able to walk through the Drupal install script as you would with any new Drupal installation. Go to {\field{\*\fldinst{HYPERLINK "http://localhost/drupal/install.php"}}{\fldrslt{\ul\cf1 http://localhost/drupal/install.php}}}\f0\fs22  (or wherever your copied your Drupal source). If you've done this before, you'll notice a new option in the "Set up database" phase \emdash  an option for SQL Server.\par
+Where to Go Next\par
+Your experience with Drupal should be as seamless and fast as with any previous installations you may have completed. Not only does the enormous number of Drupal modules and themes allow you to create a highly customizable content management system, but the flexibility of the framework lets you add your own PHP solutions, as well.\par
+\par
+Through all this, the mechanics of working with SQL Server take place under the hood, thanks to the PDO driver and new Drupal database layer. Your data management process should essentially be the same as when working with MySQL or any of the other databases Drupal now supports, with the caveat of the few exceptions listed earlier.\par
+\par
+    To learn more about how Drupal on SQL Server came to be, take a look at the DrupalCon session presented by Microsoft and Commerce Guys.\par
+\par
+    Drupal.org has its own dedicated site for Drupal 7 and SQL Server.\par
+\par
+    For community support, check out the SQL Server Driver for PHP Forum on MSDN.\par
+\par
+    If you want to explore beyond Drupal and get into working with SQL Server directly with PHP, your best place to start would be the SQL Server Driver for PHP Documentation on TechNet. \par
+\par
+* This article was commissioned by and prepared for Microsoft Corporation. This document is for informational purposes only. MICROSOFT MAKES NO WARRANTIES, EXPRESS OR IMPLIED, IN THIS SUMMARY.\par
+}
+ 

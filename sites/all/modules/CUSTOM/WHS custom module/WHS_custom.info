@@ -1,0 +1,8 @@
+name = WHS Custom Module
+description = Contains custom functions and general routines for WHS.  Jul 2014  SRH
+
+core = 7.x 
+project = "custom"
+package = Custom
+
+ 

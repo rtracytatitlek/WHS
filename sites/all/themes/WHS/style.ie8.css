@@ -1,0 +1,14 @@
+/* $Id: style.ie8.css,v 1.6.2.2 2010/11/13 13:35:09 danprobo Exp $ */
+
+
+#block-nice-menus-1 .menu-path-home-services .down-arrow {
+    background: url("images/Down Arrow.png") no-repeat scroll 102px 13px / 2px 2px rgba(0, 0, 0, 0) !important;
+}
+
+
+#block-nice-menus-1 .menu-path-home-organization .down-arrow-II {
+    background: url("images/Down Arrow.png") no-repeat scroll 115px 13px / 2px 2px rgba(0, 0, 0, 0) !important;
+    left: -12px;
+    position: relative;
+}
+

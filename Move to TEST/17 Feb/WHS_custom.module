@@ -1,0 +1,3846 @@
+<?php
+
+function display_panel_title() {
+	//Display the title on panel landing pages (node and directorate, etc.)  See TOP box on panel pages.
+	$title="";
+
+	//Get the directorate we are working with -- either from the URL or from a saved variable if we are in programs/descriptions section
+	$WhichDir=$_REQUEST['DID'];
+	if (!isset($_REQUEST['DID'])) {
+	  	//Is this a node page?
+	  	//Return_Taxonomy() is located in the custom module
+	  	$taxonomy=return_taxonomy();
+
+		if ($taxonomy['vid']!=FALSE) {
+        		$voc=taxonomy_vocabulary_load($taxonomy['vid']);
+			//Formatting if based on the name of the vocab -- in this case, we need to strip out the "Directorate: ".  It's just there to
+			//help content entry folks.
+	        	$title=str_replace("Directorate: ","",$voc->name);
+		}else{
+			//At this point, there is non DID in path, and no taxonomy.  Take it from what's stored in the session
+      			if (isset($_SESSION['directorate'])) {
+				$WhichDir=$_SESSION['directorate'];
+			};
+		}
+
+
+	}else{
+		if (isset($_REQUEST['DID'])) {
+			$WhichDir=$_REQUEST['DID'];
+			$_SESSION['directorate']=$WhichDir;
+      		}//End checking for DID in the URL
+	}//End checking which parent/DID to use
+
+
+	//Check to see if we are on a specialist page.  Announcements, commuter options, training, etc.
+
+	//If this is the WHS service page being displayed (on the home landing page), then we clear the title bar.
+	//This is done from the QUICKTABS jquery panel entry (we need to determine if this is actually a WHS page, and that is done via QUICKTABS.
+
+	if (isset($_REQUEST['commuter'])) {
+	  $WhichDir="";
+	  $title="Commuter Options";
+	}
+
+	if (isset($_REQUEST['announcement'])) {
+	  $WhichDir="";
+	  $title="Announcement";
+	}
+
+	if ($WhichDir!="" && $WhichDir!=0) {
+	  $node=node_load($WhichDir);
+	  $title=$node->title;
+	}
+
+
+	//Display the title if we have one
+	if ($title!="") {
+	  //Get the location, too.  This is set and controlled from the CUSTOM.MODULE under location_control() function.  Displayed in the menu bar.
+	  $loc=$_SESSION['location'];
+
+	  echo '<div class="directorate_title">';
+	   echo '<h2>';
+	     echo $title;
+	   echo '</h2>';
+	  echo '</div>';
+	}//End checking if we have a title to display
+}//End displaying title on panel pages
+
+
+function control_tabs() {
+	//Called from panel page QUICKTABS control box (center) to control which QUICKTABS are shown on node template and home-page landing page.
+	//See PAGE templates.
+
+	// CONTROL WHICH TABS ARE SHOWN HERE - presently just TID flag in the URL.  Could be expanded as needed.
+	$WHS_default=TRUE;
+	$WhichDir=$_REQUEST['DID'];
+	$WhichAnnouncement=$_REQUEST['announcement'];
+	$page_type="";
+
+	if ($WhichDir!="" && $WhichDir!=0) {
+	    $page_type="main_landing";
+	}
+
+	if ($WhichAnnouncement!="" && $WhichAnnouncement!=0) {
+	    $page_type="announcement";
+	}
+
+	//*************************************
+	//Get the TID if there is one
+	//This only applies if this is a NODE (i.e node/xxx in the URL -- this is not normal)
+	$tid="";
+	$taxonomy=return_taxonomy(); //Check to see if this is the node version of the TID.  If NODE, get TID.  This lives in custom.module
+	if ($taxonomy['tid']!=FALSE) {
+	  $tid=$taxonomy['tid'];
+	}else{
+	  if (isset($_REQUEST['tid'])) {
+	    $tid=$_REQUEST['tid'];
+	  }
+	}
+	//************************************
+
+
+	//Code for tabs on announcement page
+	if ($page_type=="announcement") {
+	  $WHS_default=FALSE;
+	  $node=node_load($WhichAnnouncement);
+	    echo '
+	      <script>
+	        //Equivalent in DRUPAL to document.ready
+		(function($){
+		       for (x=0; x<20;x=x+1){
+		         $(".tab"+x).hide();
+		       }
+		       //Change the tab to show this is an announcement
+		       $(".tab9 a").text("Announcement: '.$node->title.'");
+		       $(".tab9").show();
+	       })(jQuery);
+    	     </script>
+    	  ';
+  	  return;
+	}//End checking if this is a directorate landing page.
+
+
+
+	//Code for DIRECTORATE INFORMATION page (home page/landing page) would go here.
+	if ($page_type=="main_landing") {
+		global $user;
+		$WHS_default=FALSE;
+
+  		//If the user is not logged, then hide favorites.  Can't store favorites if you don't have an account.
+  		//SRH Nov 2015
+	   	echo '
+   			<script>
+      			//Equivalent in DRUPAL to document.ready
+       			(function($){
+    		';
+
+    		//Only knock out favorites if we are NOT logged in
+    		if ($user->uid==0) {
+      			echo '
+          			//Favorites
+          			$(".tab6").hide();   
+      			';
+		} //End checking if we are signed in
+    
+    	  	echo '
+		          //Tabs for program pages
+        		  $(".tab3").hide(); 
+		          $(".tab4").hide(); 
+        		  $(".tab5").hide(); 
+		          $(".tab7").hide(); 
+        		  //Announcement
+	        	  $(".tab9").hide();
+		       })(jQuery);
+		    </script>
+    	  	';
+  
+		return;
+	}//End checking if this is a directorate landing page.
+
+
+	//Check to see if this is a PROGRAM / SUB-PROGRAM page
+	if ($tid!="") {
+	  	$WHS_default=FALSE;
+		//Determine if this is a program landing page or description landing page (services).  This is controlled by a field on the taxonomy term
+		$term=taxonomy_term_load($tid);
+		if ($term!="") {
+  			$page_type=$term->field_select_a_page_template['und'][0]['value'];
+		}
+
+		if ($page_type!="detail"){
+    			//PROGRAM PAGE
+    			//If this is a program landing page, hide the tabs from the normal home page, and show the tabs related to service content.  This is done on the QUICKTABS on the home page.  See QUICKTABS under
+    			//admin->services
+    			echo '
+   				<script>
+      					//Equivalent in DRUPAL to document.ready
+       					(function($){
+          					//NOTE!  Tabs are described on the QUICKTABS page (the first one is 0 and proceeds from there).  "tabXX" is assigned in the CODE as a hack to QUICKTABS.  See line 638
+         					//Three directorate/homepage tabs get hidden on the service page.
+         					for (x=0; x<3;x=x+1){
+           						$(".tab"+x).hide();
+         					}
+        					//Favorites
+        					$(".tab6").hide();   
+       						//Top Tools
+        					$(".tab8").hide();
+       						//Announcements
+        					$(".tab9").hide();
+
+	       					//Show the tabs related to SERVICES
+        					$(".tab3").show(); 
+        					$(".tab4").show(); 
+        					$(".tab5").show(); 
+        					$(".tab7").show(); 
+    					})(jQuery);
+    				</script>
+    			';
+  		}else{  //DETAIL page
+	    		echo '
+   				<script>
+      					//Equivalent in DRUPAL to document.ready
+       					(function($){
+          					//NOTE!  Tabs are described on the QUICKTABS page (the first one is 0 and proceeds from there).  "tabXX" is assigned in the CODE as a hack to QUICKTABS.  See line 638
+         					//Three directorate/homepage tabs get hidden on the service page.
+    						for (x=0; x<20;x=x+1){
+      							$(".tab"+x).hide();
+    						}
+    						$(".tab3").show();
+    						$(".tab3 a").html("Service Detail Page");
+				    	})(jQuery);
+    				</script>
+    			';
+  		}//End checking for detail/program service page
+	}else{  
+    		//Anything else that is NOT a service page.
+  		echo '
+ 			<script>
+   				//Equivalent in DRUPAL to document.ready
+  				(function($){
+    					//NOTE!  Tabs are described on the QUICKTABS page (the first one is 0 and proceeds from there).  "tabXX" is assigned in the CODE as a hack to QUICKTABS.  See line 638
+    					//Three directorate/homepage tabs get shown on NON-service page.
+    					for (x=0; x<3;x=x+1){
+      						$(".tab"+x).show();
+    					}
+    					$(".tab6").show(); //Favorite
+
+					//Hide the tabs related to SERVICES
+    					$(".tab3").hide();  //Information
+    					$(".tab4").hide();  //Service Eligibility
+    					$(".tab5").hide();  //Related Links
+    					$(".tab7").hide(); //How to obtain
+    					$(".tab9").hide(); //Announcements
+  				})(jQuery);
+			</script>
+		';
+	} //End checking if this is a TID page (service) or not
+
+	if ($WHS_default==TRUE) {
+  		echo '
+   			<script>
+      				//Equivalent in DRUPAL to document.ready
+       				(function($){
+          				//NOTE!  Tabs are described on the QUICKTABS page (the first one is 0 and proceeds from there).  "tabXX" is assigned in the CODE as a hack to QUICKTABS.  See line 638
+         				//Three directorate/homepage tabs get hidden on the service page.
+         				for (x=0; x<20;x=x+1){
+	           				$(".tab"+x).hide();
+         				}
+        				//Show the services only tab
+        				$(".tab2").css("margin-left","37px");
+        				$(".tab2").show();
+
+        				//Clear the title
+        				$(".directorate_title h2").text("WHS Service Options");
+    				})(jQuery);
+    			</script>
+    		';
+	}
+
+} // End QUICKTAB tab display/hide on node_template page
+
+function return_taxonomy() {
+	//This function will return the related TID of a selected node
+	//Used on "views" called from the landing pages (node template page, primarily, as this is a node -- but all views have this check)
+	//First, is this a node?
+
+	if (arg(0)=="node") {
+		//Get the node
+		$nid=arg(1);
+		$node=node_load($nid);
+		
+
+		//Send back the associated taxonomy term
+		$taxonomy['tid']=$node->field_which_program_or_service_['und'][0]['target_id'];
+
+		if ($taxonomy['tid']=="") {
+			$taxonomy['tid']=$node->field_associate_with_which_term['und'][0]['target_id'];
+		}
+
+		$tax=taxonomy_term_load($taxonomy['tid']);
+		$taxonomy['vid']=$tax->vid;
+		return $taxonomy;
+	}else{
+		$taxonomy['tid']=FALSE;
+		$taxonomy['vid']=FALSE;
+		return $taxonomy;
+	}
+}//End returning TID of node
+
+function get_active_directorate() {
+//This function returns the title of the active directorate that is in the path (root directorate).  Used primarily to display the title on the panel page, 
+//but also be breadcrumbs to determine the root directorate.
+//RETURNS: title of the directorate being viewed, and NID of direcotorate if appropriate
+
+
+	//Note -- if we are on the home page, just show home.
+	if (arg(0)=="home" && arg(1)=="" && !isset($_REQUEST['tid'])) {
+		//If there are other URL variables set, we'll pick them up
+		unset($_SESSION['directorate']);
+		$directorate['name']="";
+		$directorate['nid']="";
+	}
+
+
+	//Get the directorate we are working with -- either from the URL or from a saved variable if we are in programs/descriptions section
+	$WhichDir=$_REQUEST['DID'];
+	if (!isset($_REQUEST['DID']) && isset($_SESSION['directorate'])) {
+	  $WhichDir=$_SESSION['directorate'];
+	}
+
+
+	//Check to see if we are on a specialist page.  Announcements, commuter options, training, etc.
+
+	//If this is the WHS service page being displayed (on the home landing page), then we clear the title bar.
+	//This is done from the QUICKTABS jquery panel entry (we need to determine if this is actually a WHS page, and that is done via QUICKTABS.
+
+	if (isset($_REQUEST['commuter'])) {
+	  $WhichDir="";
+	  $title="Commuter Options";
+	}
+
+	if (isset($_REQUEST['announcement'])) {
+	  $WhichDir="";
+	  $title="Announcement";
+	}
+
+
+
+
+	if ($WhichDir!="" && $WhichDir!=0) {
+	  $node=node_load($WhichDir);
+	  $directorate['name']=$node->title;
+	}else{
+	  if ($title=="") {
+	  	$directorate['name']="WHS Service";
+	  }else{
+		$directorate['name']=$title;
+	  }
+	}
+
+	$directorate['nid']=$WhichDir;
+	
+
+return $directorate;
+
+
+
+}//End function get_active_directorate
+
+function get_current_location() {
+
+	//Defaults to the USER profile location unless something is changed on the menu bar at the top of the page.
+
+	global $user;
+	$usr=user_load($user->uid);
+	
+	$default_location=$usr->field_service_location['und'][0]['value'];
+	
+	if ($default_location=="") {$default_location="All";}
+
+	//If location is set in the URL, that means the user select the location from the dropdown below.  That trumps everything.
+	if (isset($_REQUEST['base_location'])) {
+		$_SESSION['location']=$_REQUEST['base_location'];
+	}
+
+	//Is a location set in the session variable?
+	if (isset($_SESSION['location'])) {
+		$Where=$_SESSION['location'];
+	}else{
+		$Where=$default_location;
+		$_SESSION['location']=$Where;
+	}
+
+
+return $Where;
+}
+
+function location_control() {
+	//This function is called by the page_template on the header menu bar.
+	//Establishes were the user is located based (1) on profile, and (2) if blank, at Pentagon
+	//Dec 2015
+
+
+	$Where=get_current_location();
+
+	//Presently, locations are hard coded, and correspond to the locations found in the content field "field_service_location"
+	$opt[0]="All";
+	$opt[1]="Pentagon";
+	$opt[2]="Crystal City";
+	$opt[3]="Mark Center";
+
+	//Capture the directorate informtion, if that is the url.  We don't want to change the user's direcorate
+	if (isset($_REQUEST['DID'])) {$dir=$_REQUEST['DID'];}
+
+
+	$output='
+		<div class="service_location_header">
+		  <span class="form"><form action="#" method="post" onchange="this.submit();">
+  			<span class="title">Service Location:</span> 
+			<input type="hidden" name="DID" value="'.$dir.'">
+		  	<span class="select"><select title="test" name="base_location">
+		';
+
+		foreach ($opt as $option) {
+			if ($option==$Where) {
+				//Highlight the current selection.  Should never be null (see above)
+				$output.='<option selected="selected" value="'.$option.'">'.$option.'</option>';
+			}else{
+				$output.='<option value="'.$option.'">'.$option.'</option>';
+			}
+		}
+	$output.="	</select></span>
+		  </form></span>
+		</div>";
+
+
+	return $output;
+
+	
+}//End of location control function
+
+
+
+
+function WHS_custom_quicktabs_alter(&$quicktabs) { 
+
+	//We need to auto select tabs.  This needs to be done PRIOR to displaying anything to prevent blinking (show one thing then change).
+	//That means no jquery change;  we need to do this in PHP before anything is displayed.
+	//SRH 01-08 Nov 2015
+
+
+	//No need to modify anything for the commuter tabs.
+	if (arg(0)=="commuter" || arg(1)=="commuter") {return;}
+	if (isset($_REQUEST['commuter'])) {return;}
+
+	//No need to change anything on taxonomy pages
+	if (arg(0)=="taxonomy") {return;}
+
+	//Auto select WHS tab if not on a program or directorate page.
+
+	//specified = a designated directorate or landing page (program/description).  Stored in the URL (don't change tab in this function)
+	//not specified = WHS services landing page (tab 2)
+	$WhichDir=$_REQUEST['DID'];
+	$WhichProgram=$_REQUEST['tid'];
+	$WhichAnnouncement=$_REQUEST['announcement'];
+	$page_type="not specified";
+
+	
+
+	//If this is an announcement, then set tab to 0 (content of an anouncement tab is set on the PANEL PAGE -- it overwrites tab 0)
+	if ($WhichAnnouncement!="" && $WhichAnnouncement!=0) {
+		$quicktabs->default_tab=9;
+		return $quicktabs;
+	}
+
+	if ($WhichDir!="" && $WhichDir!=0) {
+    		$page_type="specified";
+	}
+	if ($WhichProgram!="" && $WhichProgram!=0) {
+    		$page_type="specified";
+	}
+
+	if ($page_type=="not specified") {
+		$quicktabs->default_tab=2;
+		return $quicktabs;
+	}
+
+
+
+}//End changing quicktabs
+
+
+
+function display_variable($var) {
+	//This function displays variable information in a clean 
+	//format.  Jul 2014  SRH
+	echo '<pre>';
+		var_dump($var);
+	echo '</pre>';
+}
+
+
+function theme_path() {
+
+	$path=$_SERVER['SERVER_NAME'];
+
+	return 'http://'.$path.base_path().path_to_theme();
+
+}
+
+
+function WHS_custom_form_alter(&$form,&$form_state,$form_id){
+	//display_variable($form_id);
+	//die;
+
+	switch ($form_id) {
+	 
+		case "taxonomy_overview_terms":
+			//We need to add the location to each term (displayed) so we can identify duplicates vs. just different locations.
+			foreach ($form as $key=>$value) {
+				if (!is_object($value)){
+					if (isset($value['#term']) && is_array($value)){
+						//Get the full taxaonomy so we can capture the location of the service.
+						$tax=taxonomy_term_load($value['#term']['tid']);
+						$location=$tax->field_service_location['und']['0']['value'];
+						
+						if ($location!="") {
+							//Both are needed to update the table.
+							$form[$key]['#term']['name']='['.$location.'] '.$value['#term']['name'];					
+							$form[$key]['view']['#title']='['.$location.'] '.$value['#term']['name'];					
+	
+							$form[$key]['location']=array(
+								'#type'=>'text',
+								'#title'=>$value['#term']['name'].' ('.$location.')',
+							);
+						}else{
+							$form[$key]['#term']['name']="[Default: Pentagon] ".$value['#term']['name'];					
+							$form[$key]['view']['#title']="[Default: Pentagon] ".$value['#term']['name'];					
+						}	
+					}//Is this a term ID or just part of the form?
+				}//Objects are never term ID's, and it causes an error if we test for ['#term'] on an object
+			}//Go through each form element.
+
+
+
+		break;  //End modifying the taxonomy overview form/table
+
+	} //End checking which form is being viewed (switch)
+
+}
+
+
+
+
+function test_director($gid) {
+
+	//This function is called from the directorate landing page (ODLP og node template page)to determine what type of second column should be displayed.
+
+	$query='select * from {og_membership} where gid=:gid and entity_type=\'node\'';
+
+	$result=db_query($query,array(':gid'=>$gid));
+
+	while ($WhichNode[]=$result->fetchAssoc());
+
+
+	foreach($WhichNode as $Item){
+		$node=node_load($Item['etid']);
+		if (isset($node->field_default_director_descripti)){
+			//"organization_landing_page"){
+			break;
+		}
+
+	}//End checking to make sure this content is the type we need to test
+
+
+	return $node->field_default_director_descripti['und'][0]['value'];
+
+}
+
+
+
+function fix_DB() {
+	
+	//Fix DB
+	//This is only required when converting from SQLSRVR to MYSQL where the primary keys were dropped.  This is NOT recommended.
+	$query="show tables";
+	$temp=db_query($query);
+	while ($result=$temp->fetchAssoc())
+		$Table[]=$result["Tables_in_hhcdevc1_whs"];
+
+	foreach ($Table as $WhichTable) {
+	
+		if (strpos($WhichTable,'ield_data')!=0){
+			echo $WhichTable.'<br>';
+			$query="SHOW INDEXES FROM ".$WhichTable." WHERE Key_name = 'PRIMARY'";
+			$temp=db_query($query);
+			$result=$temp->fetchAssoc();
+			display_variable($result);
+
+			if ($result==FALSE) {
+				try{
+					$query="ALTER TABLE ".$WhichTable." ADD PRIMARY KEY( entity_type, deleted, entity_id, language, delta)";
+					$temp=db_query($query);
+				}catch (Exception $e) {
+				    echo 'Caught exception: ',  $e->getMessage(), "\n";
+				}
+			}
+		}
+
+		if (strpos($WhichTable,'ield_revision')!=0){
+			echo $WhichTable.'<br>';
+			$query="SHOW INDEXES FROM ".$WhichTable." WHERE Key_name = 'PRIMARY'";
+			$temp=db_query($query);
+			$result=$temp->fetchAssoc();
+
+			display_variable($result);
+			if ($result==FALSE) {
+				try{
+					$query="ALTER TABLE  ".$WhichTable." ADD PRIMARY KEY( entity_type, deleted, entity_id, language, delta, revision_id)";
+					$temp=db_query($query);
+				}catch (Exception $e) {
+					echo 'Caught exception: ',  $e->getMessage(), "\n";
+					echo $WhichTable;
+				}
+			}
+		}
+	}//Loop through all tables	
+
+	die('DONE!');
+
+}//End fixing the missing primary keys in the FIELD tables.
+
+
+
+
+
+function display_user(){
+	//called from the 'display user block' located in the search region of the block area (admin->structure->block)
+	//Oct 2014
+	global $user;
+
+	//Only show names if we are not anynomous.
+	if ($user->uid!=0) {
+	  try {
+			$user_fields=user_load($user->uid);
+
+//display_variable($user_fields);
+//die("display_user: 608");
+
+			//Is this person an executive?  if not, then turn off the leadership tab on the homepage (quicktabs, bottom middle)
+			if ($user_fields->field_executive['und'][0]['value']!="ses") {
+				echo '<script>
+						jQuery(document).ready(function(){
+							jQuery(".quicktabs-tabs .last").hide();
+						});
+				</script>';
+
+			}
+
+			$first_name=$user_fields->field_first_name['und']['0']['value'];
+			$last_name=$user_fields->field_last_name['und']['0']['value'];
+
+			//Get the respective OG groups.  Use node-load to get the names
+			$x=0;
+			foreach ($user_fields->og_user_node['und'] as $WhichOG) {
+				$node=node_load($WhichOG['target_id']);
+				$OG_List[$x]['name']=(strip_tags($node->title));
+				$OG_List[$x]['nid']=$WhichOG['target_id'];
+				$x=$x+1;
+			}
+
+
+			$display_og='<div class="user_og_list"><select class="og_select" onchange="location=this.options[this.selectedIndex].value">';
+			$display_og.='<option class="og_option" value="/">Approved Directorate List</option>';
+			foreach ($OG_List as $OG) {
+				$display_og.='<option class="og_option" value="'.base_path().'node/'.$OG['nid'].'">'.$OG['name'].'</option>';
+			}
+			//Now contains a formatted "jump" list to a person's OG groups.
+			$display_og.='</select></div>';
+
+			//We also want to set the first OG loaded as default.  That equates to the first OG that the user is a member of.
+			//Obviously, this can be changed.   However, we need to load something on the new front page, now (Jan 18, 2015)
+			$WhichDirectorate=$_SESSION['directorate'];
+			if (isset($OG_List[0]['nid']) && $WhichDirectorate==0){
+
+				$_SESSION['directorate']=$OG_List[0]['nid'];
+
+			}
+
+			//$user_fields now contains everything (custom fields) about this user including OG group access
+			echo '<div class="user_info">';
+				echo '<span class="name">'.$first_name.' '.$last_name.'</span>';
+				echo $display_og;
+		  	echo '</div>';
+
+	  }//End TRY attempting to load user info	
+
+
+	  //Catch any errors
+	  catch (Exception $e){
+	      watchdog ("PHP","Welcome User Block ".$e->getMessage());
+	  } //End catch
+
+	}else{
+	//IF not logged in, then show this
+			echo '<div class="user_info">';		
+				echo '<span class="name">[Not logged in]</span>';
+		  	echo '</div>';
+	}
+
+}//End display_user function
+
+
+function whs_set_breadcrumb() {
+	//Called from function DISPLAY_WHS_BREADCRUMBS.  This will override the core breadcrumbs and allow breadcrumbs to exist in a block.
+	//See panel pages
+	//Aug 2014
+
+	if (arg(0)=="taxonomy"){
+
+		//*********** This was replaced with the simpler code of just reading the URL.  Change came as a result of using clean URL's instead
+		//*********** of raw TID's.  Feb 2016
+
+		//Get taxonomy path
+		$tid=arg(2);
+		$term_list=array();
+		$parents=taxonomy_get_parents_all($tid);
+	
+		foreach ($parents as $term) {
+			$term_list[]=$term->tid;
+		}
+
+		//Get the top level vocab
+		$vocab=taxonomy_vocabulary_load($parents[0]->vid);
+
+		$temp=taxonomy_get_term_by_name($vocab->name);
+		$vid=$vocab->vid;
+
+		$option=array('absolute'=>TRUE);
+
+		//Set "Services" root
+		//$target="?vid=".$vid."&qt-whs_home_page_service_table=2";	
+		if ($vocab->name=="Services") {
+			$taret="/";
+			$breadcrumb[]='<span class="crumb_element"><a href="/WHS/">Services</a></span>';
+		}
+
+		//The list is in reverse order.
+		for ($x=count($term_list)-1;$x>-1;$x=$x-1){
+			$option=array('absolute'=>TRUE);
+		 	$target=url("taxonomy/term/".$term_list[$x], $option);
+
+			$term=taxonomy_term_load($term_list[$x]);
+			$target=l($term->name,"taxonomy/term/".$term->tid);
+
+			$breadcrumb[]='<span class="crumb_element">'.$target.'</span>';
+
+		} //Cycle through each element in the path
+
+
+		//Remove duplicates
+		$breadcrumb=array_unique($breadcrumb);
+
+	}else{ //End testing for taxonomy page
+
+		//********** NON TAXONOMY PAGE
+		//Get the TID/VID in the path, and then show this in the breaccrumbs.
+		$vocab['vid']=$_REQUEST['vid'];
+		$term['tid']=$_REQUEST['tid'];
+
+		$temp=taxonomy_term_load($term['tid']);
+		$term['name']=$temp->name;
+
+		$directorate=get_active_directorate();
+		$root=$directorate['name'];
+
+
+		$breadcrumb=array();
+
+		//If this is the HHC-DEV server, insert the sub-domain.  This does not exist nutanix or WHS servers.
+		$full_path=explode('/',$_SERVER['REQUEST_URI']);
+		if (in_array('WHS',$full_path)) {$DevPath="/WHS";}else{$DevPath="";}
+
+		//Is this a directorate page?
+		if ($directorate['nid']!="") {
+			//This is set in thee get_active_directorate() function
+			$breadcrumb[]='<span class="crumb_element"><a href="'.$DevPath.'/?DID='.$directorate['nid'].'">'.$root.'</a></span>';
+		}
+		if ($term['tid']!="") {
+			//This is set above if we are viewing a program landing or detail page.
+			$breadcrumb[]='<span class="crumb_element"><a href="'.$DevPath.'/?vid='.$vocab['vid'].'&tid='.$term['tid'].'&qt-whs_home_page_service_table=2">'.$term['name'].'</a></span>';
+		}
+	
+/*	
+		$target_url=explode('/',request_path());
+		$composite="";
+
+		foreach ($target_url as $path_element) {
+			//Don't want "home" in the path
+			if ($path_element!="home") {
+				$composite.=$path_element.'/';
+				$temp=$composite;
+			}else{
+				$temp="home";
+			}
+
+			//Make sure to get rid of the trailing slash
+			$breadcrumb[]='<span class="crumb_element">'.l(t($path_element), substr($temp,0,-1)).'</span>';
+		} // End looping through each component of the path and adding it to the breadcrumbs
+
+*/
+
+	}//End checking for whether this is taxonomy or something else.
+
+
+	//Ensure the first crumb is always home.  We drop the "h" to avoid position == 0.  That's equivalent to "false" and will cause a fail in the test.
+	if (strpos($breadcrumb[0],'ome')<>1) {
+		$crumb=array('<span class="crumb_element">'.l(t('Home'),'').'</span>');
+		$breadcrumb=array_merge($crumb,$breadcrumb);
+	}
+
+	//Backup so that our custom breadcrumb is also stored in Drupal.  If future iterations use a drupal breadcrumb, our changes will be picked up.
+	drupal_set_breadcrumb($breadcrumb);
+
+	//Setup the CSS wrapper and separator for the crumbs.  Note -- spaces are just stored in the separator.
+	$wrapper_front='<div class="breadcrumbs">';
+	$wrapper_back='</div>';
+	$separator=" > ";
+	$output=$wrapper_front;
+		$counter=0;
+
+		foreach ($breadcrumb as $display_crumb) {
+			$counter=$counter+1;
+			if (count($breadcrumb)!=$counter) {
+				$output.=$display_crumb.$separator;
+			}else{
+				$output.='<span class="last">'.$display_crumb.'</span>';			
+			}//Only include separatore up until the last item.
+		}//FOREACH Convert each breadcrumb into a display element in the path.  Add span's and the separator.
+
+	$output.=$wrapper_back;
+
+	return $output;
+} // End set_breadcrumb function
+
+
+
+
+
+
+
+function display_whs_breadcrumbs() {
+
+
+
+	//Just a holder function.  Called from within the BREADCRUMB block.  Keep code out of the DB.
+
+
+
+	echo whs_set_breadcrumb();
+
+
+
+
+
+
+
+//Change breadcrumbs to use Drupal
+
+
+
+	//$breadcrumb[]=l('Home','<front>');
+
+
+
+	 
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function display_alpha_menu() {
+
+
+
+	//This function is called from the taxonomy pages.  It will display a alphabetical menu (A B C D E, etc) at the top of the
+
+
+
+	//page and link to the respective letters on the same page (i.e. on page anchors).  These anchors are set in a field 
+
+
+
+	//on the taxonomy term pages of each respective vocab and should ALWAYS be the first letter of the term itself (hence the alpha list)
+
+
+
+	
+
+
+
+	$menu="<span class='alpha-menu-list'>";
+
+
+
+	foreach (range('A','Z') as $letter) {
+
+
+
+		$menu.='<a href="#'.strtolower($letter).'" class="alpha-menu-item">'.$letter.'</a>&nbsp&nbsp';
+
+
+
+	}
+
+
+
+	
+
+
+
+	$menu.='</span>';
+
+
+
+	echo $menu;
+
+
+
+	
+
+
+
+	return;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+function display_locations_category($row, $data) {
+
+
+
+ 	//Called from the Service Category description view.
+
+
+
+	//First, we need to pull all the records associated with this one name.  Limit all to PENTAGON so we don't have duplicates (see filter).  Hence, name will only appear once.  Then, once we have all the locations for this one name, we then see if there is more than one.  If so, we have multiple locations, and this record link only by the locations.  Otherwise, the name is the link and we're done.
+
+
+
+	//RENAMED:  "Service by Location" view -- cannot change machine name, though (expanded beyond c&p) 
+
+
+
+	$view='contracting_and_procurement_by_location';
+
+
+
+	
+
+
+
+	$display='block';
+
+
+
+	$arg="";;
+
+
+
+	if (isset($row->name))
+
+
+
+		$arg=array($row->name);
+
+
+
+	$results=views_get_view_result($view,$display,$arg);
+
+
+
+	
+
+
+
+	$Number=count($results);
+
+
+
+	
+
+
+
+		
+
+
+
+	$root=$results[0]->taxonomy_vocabulary_machine_name;
+
+
+
+	
+
+
+
+	//Now get the target location.  Everything should be converted to lowercase for use in the url.
+
+
+
+	$location_name="";
+
+
+
+	if (isset($data->field_field_location[0]['rendered']['#markup']))
+
+
+
+		$location_name=strtolower($data->field_field_location[0]['rendered']['#markup']);
+
+
+
+	//Note, if location ="" then we presume pentagon.
+
+
+
+	if ($location_name=="") {$location_name="pentagon";}
+
+
+
+	
+
+
+
+	//Now get the on-page location anchor.
+
+
+
+	$anchor=strtolower(substr($arg[0],0,1));
+
+
+
+	if (isset($data->field_field_on_page_link[0]['rendered']['#markup']))
+
+
+
+		$anchor=$data->field_field_on_page_link[0]['rendered']['#markup'];
+
+
+
+	
+
+
+
+	if ($Number==1) {
+
+
+
+	 //We only have one match -- that means that there is only one location -- so just link the name.
+
+
+
+	 
+
+
+
+	 $target='/services/'.$root.'/'.$row->name.'/'.$location_name;
+
+
+
+	 $target=str_replace(' ','-',$target);
+
+
+
+	 $target=str_replace('_','-',$target);
+
+
+
+	 $option=array('absolute'=>TRUE);
+
+
+
+	 $target=url("taxonomy/term/".$row->tid, $option);
+
+
+
+	 $disp[0]='<div class="program-title"><a id="'.$anchor.'"></a><a class="alpha-anchor">*</a> <a class="service_location" href="'.$target.'">'.t($arg[0]).'</a></div>';
+
+
+
+	 $title=$arg[0];
+
+
+
+	 $disp[1]='<span class="location_list">Continue to the <a class="service_location" href="'.$target.'">'.$title.'</a> page.';
+
+
+
+	return $disp;
+
+
+
+	} //End checking for a single location
+
+
+
+	
+
+
+
+	//If we are here, that means more than one location.  Display the name of the location, but not as a link, then show locations as links.
+
+
+
+	//Note -- we still need the anchor (used by the menu on the left (see template.php) and the A-Z link at the top of the screen (see CUSTOM MODULE))
+
+
+
+	$title=$arg[0];
+
+
+
+	$disp[0]='<div class="program-title"><a id="'.$anchor.'" class="alpha-anchor">*</a>&nbsp'.t($arg[0]).'</div>';
+
+
+
+	$disp[1]='<span class="location_list">Continue to the '.$title.' ';
+
+
+
+		$x=0;
+
+
+
+		
+
+
+
+		$option=array('absolute'=>TRUE);
+
+
+
+		$temp=explode('/',url("taxonomy/term/".$row->tid, $option));
+
+
+
+
+
+
+
+	
+
+
+
+		//-1 to strip off the location
+
+
+
+		for ($x=0;$x<count($temp)-1;$x=$x+1) {
+
+
+
+			$base_path.=$temp[$x];
+
+
+
+		
+
+
+
+				$base_path.="/";
+
+
+
+		}
+
+
+
+	
+
+
+
+	
+
+
+
+		foreach ($results as $location) {
+
+
+
+			$location_name=strtolower($location->field_field_location[0]['raw']['safe_value']);
+
+
+
+			
+
+
+
+			$disp[1].='<span class="location_item">';
+
+
+
+			$disp[1].='<a class="service_location" href="'.$base_path.$location_name.'">'.t($location_name).' page</a>';
+
+
+
+			$disp[1].='</span>&nbsp;';
+
+
+
+			$x=$x+1;
+
+
+
+		}//End cycling through each location
+
+
+
+	$disp[1].='.</span>';
+
+
+
+		
+
+
+
+			
+
+
+
+return $disp;
+
+
+
+}//End display_location_categroy function
+
+
+
+
+
+
+
+function display_locations_program($row, $data) {
+
+
+
+ 	//Called from the Service program description view.
+
+
+
+	//First, we need to pull all the records associated with this one name.  Limit all to PENTAGON so we don't have duplicates (see filter).  Hence, name will only appear once.  Then, once we have all the locations for this one name, we then see if there is more than one.  If so, we have multiple locations, and this record link only by the locations.  Otherwise, the name is the link and we're done.
+
+
+
+	//Note the name is misleading;  this is for all service categories not just c&p
+
+
+
+	$view='contracting_and_procurement_by_location';
+
+
+
+	$display='block';
+
+
+
+	$arg="";
+
+
+
+	if (isset($row->name))
+
+
+
+		$arg=array($row->name);
+
+
+
+	$results=views_get_view_result($view,$display,$arg);
+
+
+
+	
+
+
+
+	$Number=count($results);
+
+
+
+	
+
+
+
+	$root=$results[0]->taxonomy_vocabulary_machine_name;
+
+
+
+	
+
+
+
+	//Now get the target location.  Everything should be converted to lowercase for use in the url.
+
+
+
+	$location_name="";
+
+
+
+	if (isset($data->field_field_location[0]['rendered']['#markup']))
+
+
+
+		$location_name=strtolower($data->field_field_location[0]['rendered']['#markup']);
+
+
+
+	//Note, if location ="" then we presume pentagon.
+
+
+
+	if ($location_name=="") {$location_name="pentagon";}
+
+
+
+	
+
+
+
+	//There is no on-page location anchor on the program landing page.
+
+
+
+	
+
+
+
+	if ($Number==1) {
+
+
+
+	 //We only have one match -- that means that there is only one location -- so just link the name.
+
+
+
+	 
+
+
+
+	 $target='/services/'.$root.'/'.$row->name.'/'.$location_name;
+
+
+
+	 $target=str_replace(' ','-',$target);
+
+
+
+	 $target=str_replace('_','-',$target);
+
+
+
+	 
+
+
+
+	 echo '<a class="service_location" href="'.$target.'">'.t($arg[0]).'</a>';
+
+
+
+	return;
+
+
+
+	} //End checking for a single location
+
+
+
+	
+
+
+
+	//If we are here, that means more than one location.  Display the name of the location, but not as a link, then show locations as links.
+
+
+
+	//Note -- we still need the anchor (used by the menu on the left (see template.php) and the A-Z link at the top of the screen (see CUSTOM MODULE))
+
+
+
+	
+
+
+
+	echo '<img class="program_icon" src="/sites/all/themes/WHS/images/logo-footer.png" alt="[located in custom.php]"> <span class="program_name">'.t($arg[0]).'</span>';
+
+
+
+	
+
+
+
+	echo '<span class="program_location_list">';
+
+
+
+		foreach ($results as $location) {
+
+
+
+			echo '<span class="program_location_item" style="padding-right:10px;">[';
+
+
+
+			$location_name=strtolower($location->field_field_location[0]['raw']['safe_value']);
+
+
+
+			$target='/services/'.$root.'/'.$row->name.'/'.$location_name;
+
+
+
+			$target=str_replace(' ','-',$target);
+
+
+
+			$target=str_replace('_','-',$target);
+
+
+
+			echo '<a class="program_service_location" href="'.$target.'">'.t($location_name).'</a>';
+
+
+
+			echo ']</span>';
+
+
+
+		}//End cycling through each location
+
+
+
+	echo '</span>';
+
+
+
+			
+
+
+
+		
+
+
+
+
+
+
+
+
+
+
+
+}//End display_location_program function
+
+
+
+
+
+
+
+function display_children_menu($TID){
+
+
+
+	
+
+
+
+	$temp=$_REQUEST['q'];
+
+
+
+$Tpath=explode('/',$temp);
+
+
+
+
+
+
+
+
+
+
+
+//$Path[0] == 'COMMUTER'
+
+
+
+//$Path[1] == [Commuter Type]
+
+
+
+//$Tpath[2] == [Commuter Type Sub-Page]
+
+
+
+
+
+
+
+//NOT LOCATION SPECIFIC
+
+
+
+
+
+
+
+//At this level, there are no menus (menus require a vocabulary, and therefore cannot work off terms).
+
+
+
+//So we manually create the same outline as the menu structure
+
+
+
+
+
+
+
+$TID=arg(2);
+
+
+
+$children=taxonomy_get_children($TID);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Cycle through each child to get name and set link
+
+
+
+$x=0;
+
+
+
+
+
+
+
+//asort($menu);
+
+
+
+
+
+
+
+foreach ($children as $child) {
+
+
+
+  $menu[$x]['name']=$child->name;
+
+
+
+  $target=str_replace(' ','-',$child->name);
+
+
+
+  $target=strtolower($target);
+
+
+
+  //Because we use children links (not just tax terms), we need to recreate the path manually -- from the root.  Hence the leading "/".
+
+
+
+  
+
+
+
+    $menu[$x]['link']="/";
+
+
+
+    foreach ($Tpath as $path) {
+
+
+
+      $menu[$x]['link'].=$path.'/';
+
+
+
+    }
+
+
+
+    $menu[$x]['link'].=$target;
+
+
+
+  
+
+
+
+  //echo $child->tid.'<br>';
+
+
+
+  //$menu[$x]['link']=drupal_lookup_path("/taxonomy/term/".$child->tid);
+
+
+
+  $x=$x+1;
+
+
+
+}  //Cycle through each child of this term (menu entry at the lowest level of the service chain)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+foreach ($menu as $item) {
+
+
+
+  echo '<div class="service_program_sub_page">';
+
+
+
+    echo '<a href="'.$item['link'].'">'.$item['name'].'</a>';
+
+
+
+  echo '</div>';
+
+
+
+}
+
+
+
+	
+
+
+
+} //End display_child_menu
+
+
+
+
+
+
+
+
+
+
+
+function display_service_category_menu($TID){
+
+
+
+	//called from the service CATEOGRY page left nav. 
+
+
+
+	$term=taxonomy_term_load($TID);
+
+
+
+	$menu_name=$term->name;
+
+
+
+	//The term name is used for the path, and does not include the truncated menu name (see below)
+
+
+
+	$term_name=str_replace(" ","_", $term->name);
+
+
+
+	$term_name=str_replace(",","", $term_name);
+
+
+
+	$term_name=str_replace("&","", $term_name);
+
+
+
+	$term_name=strtolower($term_name);
+
+
+
+	
+
+	$max_depth=99;
+
+
+
+	$children=taxonomy_get_tree($term->tid,0,$max_depth);
+
+
+
+
+
+	//We need the actual path to call to display the page with anchors.  This is from the URL.
+
+
+
+	$CurrentPath=base_path();
+
+
+
+	
+
+
+
+	$menu="";
+
+
+
+	$x=0;
+
+
+
+
+
+	foreach ($children as $child) {
+
+
+
+		$Anchor=strtolower(substr($child->name,0,1));
+
+
+
+		$menu[$x]['name']=$child->name;
+
+
+
+		//This path loads the root VID (for breadcrumbs), the TID of the child (actual page to load), and jumps to the working area of the home
+
+		//page.  NOTE:  Menu tab 2 (0,1,2) is the WHS Services menu.  If this moves....bummer
+
+		//SRH 2015
+
+		$menu[$x]['link']='?vid='.$_REQUEST['vid'].'&tid='.$child->tid.'&qt-whs_home_page_service_table=2';
+
+
+
+		$x=$x+1;
+
+
+
+	}
+
+
+
+	asort($menu);
+
+
+
+	
+
+
+
+	//Get rid of duplicates (same name, different location)
+
+
+
+	
+
+
+
+	for ($x=0;$x<count($menu);$x=$x+1) {
+
+
+
+		$counter=0;
+
+
+
+		for ($y=0;$y<count($menu);$y=$y+1) {
+
+
+
+			if ($menu[$x]['name']!="DUPE") {
+
+
+
+				if ($menu[$x]['name']==$menu[$y]['name']) {
+
+
+
+					$counter=$counter+1;
+
+
+
+					if ($counter==2) {
+
+
+
+						$menu[$x]['name']="DUPE";
+
+
+
+						break;	
+
+
+
+					}
+
+
+
+				}
+
+
+
+			}//Do not check DUPES
+
+
+
+		}//Go through each item, against the entire list
+
+
+
+	}//Search for dUPES
+
+
+
+	
+
+
+
+	echo '<div class="category_menu">';
+
+
+
+	foreach ($menu as $item) {
+
+
+
+	  if ($item['name']!="DUPE"){
+
+
+
+	  	echo '<div class="category_menu_item">';
+
+
+
+	    	echo '<a href="'.$item['link'].'">'.$item['name'].'</a>';
+
+
+
+	  	echo '</div>';
+
+
+
+	  }//No duplicates -- happens when we have the same name, but different location
+
+
+
+	}
+
+
+
+	echo '</div>';
+
+
+
+
+
+
+
+	
+
+
+
+}//End display service category menu
+
+
+
+
+
+
+
+
+
+
+
+function display_title($tid){
+
+
+
+	//Called from the taxonomy term pages to show the title of the taxonomy being displayed.
+
+
+
+	$term=taxonomy_term_load($tid);
+
+
+
+	
+
+
+
+	$output='<h2>';
+
+
+
+	$output.=$term->name;
+
+
+
+	$output.='</h2>';
+
+
+
+	
+
+
+
+	return $output;
+
+
+
+	
+
+
+
+}//End display title
+
+
+
+
+
+
+
+function display_service_sub_page_menu($TID) {
+
+
+
+//Taxonomy SERVICE SUB PAGE landing page left menu.	
+
+
+
+	
+
+
+
+$children=taxonomy_get_children($TID);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Cycle through each child to get name and set link
+
+
+
+$x=0;
+
+
+
+$option=array('absolute'=>TRUE);
+
+
+
+foreach ($children as $child) {
+
+
+
+  
+
+
+
+  $menu[$x]['name']=$child->name;
+
+
+
+	$menu[$x]['tid']=$child->tid;
+
+
+
+	$menu[$x]['link']=url('taxonomy/term/'.$child->tid,$option);
+
+
+
+  //$menu[$x]['link']=$Tpath[3].'/'.$target.'/'.$child->tid;
+
+
+
+
+
+
+
+  //$menu[$x]['link']="/taxonomy/term/".$child->tid;
+
+
+
+  $x=$x+1;
+
+
+
+}  //Cycle through each child of this term (menu entry at the lowest level of the service chain)
+
+
+
+
+
+
+
+asort($menu);
+
+
+
+
+
+
+
+
+
+
+
+foreach ($menu as $item) {
+
+
+
+  echo '<div class="service_program_sub_page">';
+
+
+
+    echo '<a href="'.$item['link'].'">'.$item['name'].'</a>';
+
+
+
+  echo '</div>';
+
+
+
+}
+
+
+
+	
+
+
+
+	
+
+
+
+} //End Display_service_sub_page_menu
+
+
+
+
+
+
+
+function test_path() {
+
+
+
+	$TID=arg(2);
+
+
+
+	
+
+
+
+	$parents=taxonomy_get_parents_all($TID);
+
+
+
+	
+
+
+
+	if (isset($parents[0]->field_location)) {
+
+
+
+		//Only select this variant if we on are on a service page.
+
+
+
+		//Field_location is set only on service pages.
+
+
+
+		if (isset($parents[1]) && $parents[1]->tid!=$parents[1]->vid) {
+
+
+
+			return TRUE;
+
+
+
+		}
+
+
+
+	}
+
+
+
+	return FALSE;
+
+
+
+} //End test_path (selection criteria on sub pages for taxonomy services)
+
+
+
+
+
+
+
+function display_program_detail_button($TID){
+
+
+
+	//Called from the SERVICE-PROGRAM-LANDING PAGE, right column top.
+
+
+
+	//Get the location (position 3)
+
+
+
+	
+
+
+
+	$temp=$_REQUEST['q'];
+
+
+
+	$Tpath=explode('/',$temp);
+
+
+
+	
+
+
+
+	//Check the children of this taxonomy term (service program).  If one of the children is Program Details, then display this link.
+
+
+
+	//get current tax term
+
+
+
+	$TID=arg(2);
+
+
+
+	
+
+
+
+	$children=taxonomy_get_children($TID);
+
+
+
+	
+
+
+
+	
+
+
+
+	
+
+
+
+	//Cycle through each child to see if the name = Program Details
+
+
+
+	foreach ($children as $child) {
+
+
+
+	
+
+
+
+	  if (strtoupper($child->name)=="PROGRAM DETAILS") {
+
+
+
+	   $childTID=$child->tid; 
+
+
+
+	   $display=1;
+
+
+
+	    break;
+
+
+
+	  }
+
+
+
+	}
+
+
+
+	
+
+
+
+	//Did we have a match?
+
+
+
+	if ($display==1) {
+
+
+
+	  echo '<div class="program-service-bar">';
+
+
+
+	    echo '<img class="button_icon" src="/sites/all/themes/WHS/images/task-list.png" alt="[located in custom.php]"><a class="button_link" href="/taxonomy/term/'.$childTID.'">Program Details</a>';
+
+
+
+	  echo '</div>';
+
+
+
+	}
+
+
+
+} //End display_program_detail_button
+
+
+
+
+
+
+
+function favorites ($URL, $task) {
+
+
+
+	$display="";
+
+
+
+	//THis function is called from PAGE.TPL to see if we should store this particular URL and also from the breadcrumbs bar on most pages to
+
+
+
+	//determine if (A) we should display a "check" for already saved, or a link to save the page, (B) if the link is pressed, to set the flag so
+
+
+
+	//on page load (page.tpl) the page is saved.  Nov 2014
+
+
+
+	
+
+
+
+	
+
+
+
+	if ($task==0) {$task=$_REQUEST['task'];}
+
+
+
+	
+
+
+
+	$SavedFlag=FALSE;
+
+
+
+	
+
+
+
+	global $user;
+
+
+
+	global $base_path;
+
+
+
+	//the content type "favorites" has no fields -- everything is in the node table.
+
+
+
+	
+
+
+
+	if (isset($_REQUEST['URL'])&&$URL="") {$URL=$_REQUEST['URL'];}
+
+
+
+	
+
+
+
+	
+
+
+
+	if ($URL=="") {
+
+		if (isset($_REQUEST['q'])) {$URL=$_REQUEST['q'];}
+
+	}
+
+
+
+	
+
+
+
+	//If URL is nothing, then we can't do anything in this module
+
+
+
+
+
+					$vid=$_REQUEST['vid'];
+
+					$tid=$_REQUEST['tid'];
+
+
+
+					$term=taxonomy_term_load($tid);
+
+
+
+					$URL="?vid=$vid&tid=$tid&qt-whs_home_page_service_table=2";
+
+
+
+
+
+	if ($URL!="") {
+
+
+
+
+
+
+
+		//Check to see if this URL is in the system
+
+
+
+		$query='select * from {node} where title=:title and uid=:uid';
+
+
+
+		$result=db_query($query,array(':title'=>$URL,':uid'=>$user->uid));
+
+
+
+		$entry=$result->fetchAssoc();
+
+
+
+		//$entry now holds the record of this favorite.
+
+
+
+		$display='<div class="favorite_block">';
+
+
+
+		switch ($task) {
+
+
+
+			case "0":
+
+
+
+				//do nothing -- 0 is not an actionable value
+
+
+
+				break;
+
+
+
+			case "1":
+
+
+
+				//Save the URL is not duplicate
+
+
+
+				if ($entry=="") {
+
+
+
+					//No match -- note, the URL for service pages (program/description) includes vid and tid.
+
+					
+
+					$vid=$_REQUEST['vid'];
+
+					$tid=$_REQUEST['tid'];
+
+
+
+					$term=taxonomy_term_load($tid);
+
+
+
+					$URL="?vid=$vid&tid=$tid&qt-whs_home_page_service_table=2";
+
+
+
+
+
+					$NewNode=(object) NULL;
+
+
+
+					$NewNode->type='favorites';
+
+
+
+					$NewNode->status=1;
+
+
+
+					$NewNode->title=$URL;
+
+
+
+					$NewNode->{'field_title'}[LANGUAGE_NONE][0]['value']=$term->name;
+
+					
+
+					//$NewNode->{field_description}[LANGUAGE_NONE][0]['value']=
+
+
+
+					$NewNode->language='und';
+
+
+					$NewNode->comment=0;
+
+
+
+					$NewNode->created=strtotime('now');
+
+
+
+					$NewNode->changed=strtotime('now');
+
+
+
+					
+
+
+
+					node_object_prepare($NewNode);
+
+
+
+					node_save($NewNode);
+
+
+
+					
+
+
+
+					//Once we create the favorite, reload the page to update the favorite bar.
+
+					global $base_path;
+
+
+
+					header("Location: ".$base_path.$URL);
+
+
+
+
+
+
+
+					//we don't use this at the moment.  i'll leave it here for future work...never know...
+
+
+
+					if ($node->nid!=""){
+
+
+
+						//if the save was successful, show this in the status area for favorite -- duplicate of $task=3
+
+
+
+
+
+
+
+						$display.='<span class="favorite_icon_wrapper"><img class="favorite_icon" src="'.theme_path().'images/opm-open.png"></span>';
+
+
+
+						$display.='<span class="favorite_text_wrapper">Favorite Saved!</span>';
+
+
+
+						
+
+
+
+					}else{
+
+
+
+						$display.='<span class="favorite_text_wrapper">Unable to save favorite.</span>';
+
+
+
+					}//End checking for successful save of the new favorite
+
+
+
+				}else{
+
+
+
+					$display.='<span class="favorite_text_wrapper">Favorite already saved.</span>';
+
+
+
+				}//End checking if entry is not already saved -- don't save twice		
+
+
+
+				break;
+
+
+
+			case "2":
+
+
+
+				//Reload the page and save the URL as a favorite
+
+
+
+				$URL=$_REQUEST['q'];
+
+
+
+				$task="1";
+
+
+
+				drupal_goto($_REQUEST['q'],array('URL'=>$URL,'task'=>$task));
+
+
+
+				break;
+
+
+
+			
+
+
+
+			case "3":
+
+
+
+				//Determine what we should display in the favorite bar area
+
+
+
+				//First, translate the page url
+
+
+
+				if (!isset($_REQUEST['tid']) || !isset($_REQUEST['vid'])){
+
+					//We only currently store program landing and descritpion pages.  Both require a parent (VID) and the current view page (TID).
+
+					return;
+
+				}
+
+
+
+				$vid=$_REQUEST['vid'];
+
+				$tid=$_REQUEST['tid'];
+
+
+
+				$term=taxonomy_term_load($Path['tid']);
+
+				$URL="?vid=$vid&tid=$tid&qt-whs_home_page_service_table=2";
+
+
+
+				//display_variable($_SERVER);
+
+	
+
+
+
+				//$Path now has the components of the correct path
+
+				//$term now has the term so we can get a clean name and possibly a description.
+
+				global $base_path;
+
+
+
+				if ($entry!=""){
+
+
+
+					//If an entry for this page already exists, show that in the status bar.
+
+
+
+						$display.='<span class="favorite_icon_wrapper">
+
+						<img class="favorite_icon" src="'.theme_path().'/images/opm-open.png"></span>';
+
+
+
+						$display.='<span class="favorite_text_wrapper">Favorite Saved!</span>';
+
+
+
+				}else{
+
+
+
+					//If the entry does NOT exist, then create a link for it
+
+
+
+					//Technically, this will preclude TASK=2 from ever being called, but I included that just in case another routines needs to auto save (without click)
+
+
+
+					//save.
+
+
+
+						$display.='<span class="favorite_icon_wrapper"><img class="favorite_icon" src="'.theme_path().'/images/icn-star.png"></span>';
+
+
+
+						$display.='<span class="favorite_text_wrapper"><a href="'.$base_path.$URL.'&task=1" class="favorite_link">Add to Favorites</a></span>';					
+
+
+
+				}//End checking if an entry already exists or not					
+
+
+
+					
+
+
+
+				break;
+
+
+
+							
+
+
+
+		}//End SWITCH for which task we are doing
+
+
+
+	} //End checking that we don't have a blank URL;
+
+
+
+	
+
+
+
+	
+
+
+
+	$display.='</div>';
+
+
+
+	return $display;
+
+
+
+}//End FAVORITES module
+
+
+
+
+
+
+
+function display_print_button($page=""){
+
+
+
+	//$query=urlencode(serialize($page));
+
+
+
+	//$query=json_encode($page);
+
+
+
+
+
+	//New orders as of Feb 2015.  All content to be displayed on one page (main page).
+
+	//Only service program landing pages and service detail pages (content displayed on single page) have icons.
+
+	//Will always have vid and tid in path.
+
+
+
+					$vid=$_REQUEST['vid'];
+
+					$tid=$_REQUEST['tid'];
+
+
+
+					$term=taxonomy_term_load($tid);
+
+
+
+					$URL="?vid=$vid&tid=$tid&qt-whs_home_page_service_table=2";
+
+
+
+
+
+	echo '<span class="printer_block">';
+
+	$temp="taxonomy/term/".$tid;
+
+	global $base_path;
+
+
+
+	  	echo '<a class="printer_link" href="'.$base_path.$URL.'&print=1">';
+
+
+
+	  		echo '<img class="printer_icon" src="'.theme_path().'/images/print.gif">';
+
+
+
+	  	echo '</a>';
+
+
+
+	  	echo '<a class="email_link" href="'.$base_path.'/printmail/'.$temp.'">';
+
+
+
+	  		echo '<img class="email_icon" src="'.theme_path().'/images/icn-email.png">';
+
+
+
+	  	echo '</a>';
+
+
+
+	  	
+
+
+
+	  	//NOTE!  The pdf library is not installed for the PRINT module.  Need to put this in or the following generates an error.
+
+
+
+	  	echo '<!-- MUST INSTALL PDF LIBRARY FUNCTIONS FO PRINT.MODULE -- see config--user-interface--print, pdf, etc -->';
+
+
+
+	  	echo '<a class="pdf_link" href="/printpdf/'.$temp.'">';
+
+
+
+	  		echo '<img class="pdf_icon" src="'.theme_path().'/images/pdf.png">';
+
+
+
+	  	echo '</a>';
+
+
+
+	echo '</span>';
+
+
+
+
+
+}//End checking for display_printer version
+
+
+
+
+
+
+
+function check_role() {
+
+
+
+	//This function is called from the organization/directore landing pages to determine which view should be used.  Will return the proper view.
+
+
+
+	
+
+
+
+	global $user;
+
+
+
+	
+
+
+
+	$roles=$user->roles;
+
+
+
+	$Employee=FALSE;
+
+	$Customer=FALSE;
+
+	$Admin=FALSE;
+
+
+
+	//First, get any roles assigned to this user.
+
+
+
+	if (in_array('administrator',$roles)) {$Admin=TRUE;}
+
+
+
+	if (in_array('WHS Employee', $roles)) {$Employee=TRUE;}
+
+
+
+	if (in_array('Customer', $roles)) {$Customer=TRUE;}
+
+
+
+	
+
+
+
+	//Next, determine if we are a group member -- returns TRUE if member
+
+
+
+	//Remember, we are presently on a group landing page, so the primary node is the group
+
+
+
+	$node=node_load(arg(1));
+
+
+
+	
+
+
+
+	$gid=$node->group_group['und'][0]['value'];
+
+
+
+	$Group=og_is_member('node',$node->nid,'user',$user);
+
+
+
+	
+
+
+
+	
+
+
+
+	//Next, check the URL and see if we sent a value over via the drop down on the print bar of the org-dir. page.
+
+
+
+	if ($Admin==TRUE){
+
+
+
+		//Must be an admin to use this function
+
+		if (isset($_REQUEST['view'])) {
+
+			$temp=$_REQUEST['view'];
+
+		}else{
+
+			$temp="none";
+
+		}
+
+
+
+		switch ($temp) {
+
+
+
+			case "employee":
+
+
+
+				$Employee=TRUE;
+
+
+
+				$Group=FALSE;
+
+
+
+				$Customer=FALSE;
+
+
+
+				break;
+
+
+
+			case "customer":
+
+
+
+				$Employee=FALSE;
+
+
+
+				$Group=FALSE;
+
+
+
+				$Customer=TRUE;
+
+
+
+				break;
+
+
+
+			case "group":
+
+
+
+				$Employee=FALSE;
+
+
+
+				$Group=TRUE;
+
+
+
+				$Customer=FALSE;
+
+
+
+				break;
+
+
+
+		}//End testing the URL for 'view' value
+
+
+
+	}//End testing if we are an admin who can use the "view" selector on the directorate landing page
+
+
+
+	
+
+
+
+	$Access=array("Employee"=>$Employee, "Customer"=>$Customer, "Group"=>$Group, 'Admin'=>$Admin);
+
+
+
+	
+
+
+
+	//$roles=$Access;
+
+
+
+	
+
+
+
+	
+
+
+
+	
+
+
+
+	return $Access;
+
+
+
+	
+
+
+
+}//End determining role of this user
+
+
+
+
+
+
+
+function display_directorate_switch() {
+
+
+
+			//Called from the directorate landing page to display a drop-down selector for ADMIN to choose to view the page under different roles.
+
+
+
+			$roles=check_role();
+
+
+
+			$display_switch="";
+
+
+
+			//Only show selector if an ADMIN -- other roles can be specified later		
+
+
+
+			if ($roles['Admin']==TRUE) {	
+
+
+
+			
+
+
+
+				//Set the default flag
+
+				
+
+				if (isset($_REQUEST['view'])) {
+
+					$role=$_REQUEST['view'];
+
+				}else{
+
+					$role="none";
+
+				}
+
+
+
+
+
+				$employee="NONE";
+
+				$group="NONE";
+
+				$customer="NONE";
+
+
+
+				switch ($role){
+
+
+
+					case "employee":$employee="selected";break;
+
+
+
+					case "group":$group="selected";break;
+
+
+
+					case "customer":$customer="selected";break;
+
+
+
+				}
+
+
+
+			
+
+
+
+				$display_switch='<div class="directorate_switch"><select class="directorate_select" onchange="location=this.options[this.selectedIndex].value">';
+
+
+
+					$display_switch.='<option class="switch_option" value="?view=">Default view</option>';
+
+
+
+					$display_switch.='<option class="switch_option" value="?view=employee" '.$employee.'>Employee View</option>';
+
+
+
+					$display_switch.='<option class="switch_option" value="?view=group" '.$group.'>Group View</option>';
+
+
+
+					$display_switch.='<option class="switch_option" value="?view=customer" '.$customer.'>Customer View</option>';
+
+
+
+				//Now contains a formatted "jump" list to a person's OG groups.
+
+
+
+				$display_switch.='</select></div>';
+
+
+
+			}//End checking if we are an admin
+
+
+
+		return $display_switch;
+
+
+
+}
+
+
+
+
+
+
+
+function taxonomy_template($tid){
+
+
+
+	//Send back the template that should be used with this tax term.
+
+
+
+	//SRH Nov 2014
+
+
+
+
+
+	$taxonomy=taxonomy_term_load($tid);
+
+
+
+	return $taxonomy->field_select_a_page_template['und'][0]['value'];
+
+
+
+	
+
+
+
+}//End determining which taxonomy template is being displayed 
+
+
+
+
+
+
+
+function taxonomy_title($tid){
+
+
+
+		//return the taxonomy title
+
+
+
+		$taxonomy=taxonomy_term_load($tid);
+
+
+
+		return $taxonomy->name;
+
+
+
+}//End taxonomy name
+
+
+
+function display_directorate_information() {
+
+//Called from the directorate block in CALL_TO_ACTION block region
+
+
+
+//This session variable is initially set in WHS_CUSTOM_MODULE when the upper right drop-down (showing which directorates a user belongs to) is set
+
+
+
+$WhichDirectorate=$_SESSION['directorate'];
+
+
+
+//Have we changed the Directorate?  This is done if the user clicks on a Directorate menu item
+
+if (isset($_REQUEST['DID'])) {
+
+	$NewDir=$_REQUEST['DID'];
+
+	if ($WhichDirectorate!=$NewDir) {
+
+		$_SESSION['directorate']=$NewDir;
+
+		$WhichDirectorate=$NewDir;
+
+	}
+
+}
+
+
+
+echo '<table class="dir_top_table">';
+
+echo '<tr class="dir_top_tr">';
+
+
+
+$roles=check_role();
+
+
+
+//It is possible more than one role will be returned.  We need to prioritize as follows:
+
+//1 = group member;  2 = WHS employee; 3 = customer or other
+
+if ($roles['Group']==TRUE || $roles['Admin']==TRUE) {
+
+
+
+echo '<td class="dir_top_left">';
+
+	$view='organization_directorate_top_row';
+
+	$display='top-left';
+
+	$arg=array($WhichDirectorate);
+
+
+
+	$results=views_get_view($view);
+
+        $results->set_display($display);
+
+        $results->set_arguments($arg);
+
+        echo $results->render();      
+
+echo '</td>';
+
+  
+
+
+
+}else{
+
+
+
+if ($roles['Employee']==TRUE) {
+echo '<td class="dir_top_left">';
+
+	$view='organization_directorate_top_row';
+
+	$display='block_1';
+
+	$arg=array($WhichDirectorate);
+
+	
+
+	$results=views_get_view($view);
+
+        $results->set_display($display);
+
+        $results->set_arguments($arg);
+
+        echo $results->render();      
+
+echo '</td>';
+
+}else{
+
+echo '<td class="dir_top_left">';
+
+//Treat everyone else as a customer
+
+	$view='organization_directorate_top_row';
+
+	$display='block_4';
+
+	$arg=array($WhichDirectorate);
+
+	
+
+	$results=views_get_view($view);
+
+        $results->set_display($display);
+
+        $results->set_arguments($arg);
+
+        echo $results->render();      
+
+echo '</td>';
+
+}
+
+}
+
+
+
+
+
+
+
+//For the middle group, we show the default unless other content is specified.
+
+	$view='organization_directorate_landing_page_director_name_title';
+
+	$display='block';
+
+	$arg=array($WhichDirectorate);
+
+
+
+	$results=views_get_view_result($view,$display,$arg);
+
+
+
+	$IsName=$results[0]->_field_data['nid']['entity']->field_director_name['und'][0]['value'];
+
+
+
+	if ($IsName!=""){
+
+	
+
+			$results=views_get_view($view);
+
+	        	$results->set_display($display);
+
+		        $results->set_arguments($arg);
+
+			$DefaultName=TRUE;     
+
+		   	$NameTitle='<div class="default_name">'.$results->render().'</div>';
+
+	}else{
+
+		$DefaultName=FALSE;
+
+	}
+
+
+
+
+
+//Only show middle information if defaul is not switched on
+
+if ($DefaultName==FALSE){
+
+
+
+//It is possible more than one role will be returned.  We need to prioritize as follows:
+
+//1 = group member;  2 = WHS employee; 3 = customer or other
+
+
+
+//We no longer display this in the middle of the table.  Per Grace (11 Feb), we now display under the picture. 
+
+if ($roles['Group']==TRUE || $roles['Admin']==TRUE) {
+
+	$view='organization_directorate_top_row';
+
+	$display='top_middle';
+
+	$arg=array($WhichDirectorate);
+
+	
+
+	$results=views_get_view($view);
+
+        $results->set_display($display);
+
+        $results->set_arguments($arg);
+
+        $NameTitle=$results->render();    
+
+}else{
+
+
+
+if ($roles['Employee']==TRUE) {
+
+	$view='organization_directorate_top_row';
+
+	$display='block_2';
+
+	$arg=array($WhichDirectorate);
+
+	
+
+	$results=views_get_view($view);
+
+        $results->set_display($display);
+
+        $results->set_arguments($arg);
+
+        $NameTitle=$results->render();    
+
+}else{
+
+echo '<td class="dir_top_middle">';
+
+//Treat everyone else as a customer
+
+	$view='organization_directorate_top_row';
+
+	$display='block_5';
+
+	$arg=array($WhichDirectorate);
+
+	
+
+	$results=views_get_view($view);
+
+        $results->set_display($display);
+
+        $results->set_arguments($arg);
+
+        $NameTitle=$results->render();      
+
+
+
+}
+
+}
+
+}//End checking for default name in the middle.
+
+
+
+
+
+//It is possible more than one role will be returned.  We need to prioritize as follows:
+
+//1 = group member;  2 = WHS employee; 3 = customer or other
+
+if ($roles['Group']==TRUE || $roles['Admin']==TRUE) {
+
+  echo '<td class="dir_top_right">';
+
+	$view='organization_directorate_top_row';
+
+	$display='top_right';
+
+	$arg=array($WhichDirectorate);
+
+	
+
+	$results=views_get_view($view);
+
+        $results->set_display($display);
+
+        $results->set_arguments($arg);
+
+        echo $results->render();      
+
+	echo '<br>'.$NameTitle;
+
+  echo '</td>';
+
+}else{
+
+
+
+if ($roles['Employee']==TRUE) {
+
+  echo '<td class="dir_top_right">';
+
+	$view='organization_directorate_top_row';
+
+	$display='block_3';
+
+	$arg=array($WhichDirectorate);
+
+	
+
+	$results=views_get_view($view);
+
+        $results->set_display($display);
+
+        $results->set_arguments($arg);
+
+        echo $results->render();      
+
+	echo '<br>'.$NameTitle;  
+
+   echo '</td>';
+
+}else{
+
+//Treat everyone else as a customer
+
+  echo '<td class="dir_top_right">';
+
+	$view='organization_directorate_top_row';
+
+	$display='block_6';
+
+	$arg=array($WhichDirectorate);
+
+	
+
+	$results=views_get_view($view);
+
+        $results->set_display($display);
+
+        $results->set_arguments($arg);
+
+        echo $results->render();      
+
+	echo '<br>'.$NameTitle;
+
+  echo '</td>';
+
+}
+
+}
+
+
+
+echo '</tr>';
+
+echo '</table>';
+
+
+
+}//End the Directorate information 
+
+
+
+function  display_service_content($WhichCategory,$WhichContent) {
+
+	//$WhichCategory is set in the BLOCK that calls this function.
+	// -1 = show all categories in a table
+	// VID = show programs for this category only
+	//WhichContent is sent to TID in the BLOCK (per above)
+
+
+	switch ($WhichCategory) {
+		case "-1":
+
+			//Call the view to display all categories
+			$view='whs_service_grid_how_page';
+			$display='block';
+			$arg="";
+
+			$results=views_get_view($view);
+		        $results->set_display($display);
+			$results->set_arguments($arg);
+        		echo $results->render();      
+		break;
+
+
+
+		default:
+
+			if ($WhichContent!=0 && ServiceType($WhichContent)!="2") {
+
+			//Display main information for a particular program or detail page.
+				$view='service_program_main';
+				$display='block';
+				$arg=array($WhichContent);
+
+				$results=views_get_view($view);
+			        $results->set_display($display);
+				$results->set_arguments($arg);
+        			echo $results->render();      
+
+			}elseif (ServiceType($WhichContent)=="2") {
+
+				//If this is a service details page, show that information in the main box, too.
+
+
+				$view='service_program_sub_page_description';
+
+				$display='block';
+
+				$arg=array($WhichContent);
+
+
+
+				$results=views_get_view($view);
+
+			        $results->set_display($display);
+
+				$results->set_arguments($arg);
+
+        			echo $results->render();      
+
+
+
+				echo '<br><br>';
+
+					//Display main information for a particular program or detail page.
+
+					$view='service_program_detail_tabs';
+
+					$display='block';
+
+					$arg=array($WhichContent);
+
+
+
+					$results=views_get_view($view);
+
+				        $results->set_display($display);
+
+					$results->set_arguments($arg);
+
+        				echo $results->render();      
+
+
+
+					echo '<br><br>';
+
+
+
+
+
+					//Display main information for a particular program or detail page.
+
+					$view='services_program_sub_page_body';
+
+					$display='block';
+
+					$arg=array($WhichContent);
+
+
+
+					$results=views_get_view($view);
+
+				        $results->set_display($display);
+
+					$results->set_arguments($arg);
+
+        				echo $results->render();      
+
+
+
+				//End checking for details page
+
+
+			}else{
+
+
+
+				//Display top level programs for a particular category (service vocab)
+
+				//display_service_category_menu($WhichCategory);
+
+
+
+				//Controlled by the whs_taxonomy_menu custom module now
+
+				//SRH Feb 2015
+
+				$block = whs_taxonomy_menu_block_view("taxonomy_menu");
+
+				echo render($block['content']);
+
+
+
+/*
+
+				//Call the view to display all categories
+
+				$view='service_category_top_level_list';
+
+				$display='block';
+
+				$arg=array($WhichCategory);
+
+
+
+				$results=views_get_view($view);
+
+			        $results->set_display($display);
+
+				$results->set_arguments($arg);
+
+        			echo $results->render();      
+
+*/
+
+
+
+			}//End checking if we are viewing a category page or actual page content.
+
+
+
+		break;
+
+
+
+	} //End detercting WhichCateogry
+
+
+
+} //End determining what to show under WHS SERVICES view on the home page working area
+
+
+
+function ServiceType($tid) {
+
+	//This function will return 1 if the TID is a service program landing page, and 2 if it is a detail page
+
+	$term=taxonomy_term_load($tid);
+
+
+
+	switch ($term->field_select_a_page_template['und'][0]['value']){
+
+		case "landing":
+
+			return "1";
+
+			break;
+
+		case "detail":
+
+			return "2";
+
+			break;
+
+		default:
+
+			return "-1";
+
+			break;
+
+	}//End determing the type of template for this content
+
+
+
+ 
+
+}
+
+
+
+

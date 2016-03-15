@@ -1,0 +1,184 @@
+<?php
+
+ 
+ 
+function getWeatherDoD()
+{
+	$link = "http://weather.yahooapis.com/forecastrss?w=2514815&u=F";
+	
+	try
+	{
+		$extary = array();
+		$extary = get_loaded_extensions();
+		$ext = strtolower(implode(" ",$extary));
+		
+		if  (strstr($ext, "xml" ))	
+			return getWeatherXML($link);
+		else
+			return getWeatherPreg($link);
+	}
+	catch(Exception $e)
+	{
+		watchdog("weather","getWeatherDoD " . $e->getMessage());
+	}
+}
+
+function getWeatherXML($link)
+{
+	$weather = '';
+	$weatherlink = 'http://weather.yahoo.com/united-states/district-of-columbia/washington-2514815/';
+	$temp = '60';
+	$weathercondition = 'Sunny';
+	$weatherdescription = 'Weather. Server Access Unavailable';
+	$img = '';
+	
+	try
+	{	
+		$xmldoc = new DOMDocument();
+		$xmldoc->load($link);
+		$xml = $xmldoc->documentElement;
+		 $xpath = new DOMXPath($xmldoc);
+		 
+		 //Get Yahoo Link
+		 $xquery = $xpath->query('channel/link');
+
+		foreach ($xquery as $result)
+		 {
+				 $weatherlink = $result->nodeValue  ;
+		  } 
+		  
+		  $xquery = $xpath->query('channel/item/yweather:condition/@text');
+		 foreach ($xquery as $result)
+		 {
+				 $weathercondition = $result->nodeValue  ;
+		  } 	
+		 //Get Temp
+		  $xquery = $xpath->query('channel/item/yweather:condition/@temp');
+		 foreach ($xquery as $result)
+		 {
+				 $temp = $result->nodeValue  ;
+		  } 		
+
+		 //Get Description
+		  $xquery = $xpath->query('channel/item/description');
+		 foreach ($xquery as $result)
+		 {
+				 $weatherdescription= strip_tags($result->nodeValue)  ; 
+		  } 
+	}
+	catch(Exception $e)
+	{
+		watchdog("weather","getWeatherXML: " . $e->getMessage());
+	}
+		$img =  getIcon($weathercondition)  ;
+
+		$weather .= "<div class=weather>";
+			
+		$weather .= "<a href=". $weatherlink ."><img src=".$img. " alt='".$text ."' title='".$weatherdescription ."' longdesc='".$weatherdescription."' />";
+		$weather .= "<div class='weatherdescription' ><span class=temp>" . $temp . "&deg;F</span> <span class=weathercondition>". $weathercondition . "</span></div></a></div>";
+		
+	return $weather;
+}
+
+function getWeatherPreg($link)
+{
+	 $weather ='';
+	 $xml;
+	 $weathercondition = '';
+	 $find = '';
+	 $cond = '';
+
+	$weather = '';
+	$weatherlink = 'http://weather.yahoo.com/united-states/district-of-columbia/washington-2514815/';
+	$temp = '60';
+	$weatherdescription = '';
+	$img = '';
+	
+	 try
+	 {
+		$xml = file_get_contents($link);
+	 
+	    //Weather Conditions
+		$find = preg_match('/\<yweather:condition(.+?)\/\>/s', $xml, $matches);
+		$cond = strtolower(strip_tags($matches[0]));
+		
+		//Get description
+        $find = preg_match('/\<description\>(.+?)\<\/description\>/s', $xml, $matches);
+        $weatherdescription= strip_tags($matches[0]); 
+		
+		//Get Temp
+		$find = preg_match('/temp="(.+?)"/s', $cond, $matches);
+		$temp = $matches[0];
+		
+		//Get Cond
+		$find = preg_match('/text="(.+?)"/s', $cond, $matches);
+		$weathercondition = $matches[0];
+	}
+	catch(Exception $e)
+	{
+		watchdog("weather","getWeatherPreg " . $e->getMessage());
+	}
+		$img =  getIcon($weathercondition)  ;
+
+		$weather .= "<div class=weather>";
+			
+		$weather .= "<a href=". $weatherlink ."><img src=".$img. " alt='".$text ."' title='".$weatherdescription ."' longdesc='".$weatherdescription."' />";
+		$weather .= "<div class='weatherdescription' ><span class=temp>" . $temp . "&deg;F</span> <span class=weathercondition>". $weathercondition . "</span></div></a></div>";
+		
+	return $weather;
+}
+
+function getIcon($condition)
+{
+	$condition = strtolower($condition);
+	$img = '/sites/all/modules/custom/weather_dod/images/sunny.png';
+	try
+	{
+		switch(true) 
+		{
+				case strstr($condition,'thunder'):
+					$img = "/sites/all/modules/custom/weather_dod/images/thunder.png"; 
+					break;
+					
+			    case strstr($condition,'cloudy'):
+				case strstr($condition,"tornado"):
+				case strstr($condition,'hurricane'):
+				case strstr($condition,'dust'):
+				case strstr($condition,'haze'):
+				case strstr($condition,'smoky'):
+				case strstr($condition,'blustery'):
+					$img = "/sites/all/modules/custom/weather_dod/images/cloudy.png"; 
+					break;
+					
+				case strstr($condition,'snow'):
+				case strstr($condition,'sleet'):
+				case strstr($condition,'flurries'):
+				case strstr($condition,'hail'):
+				case strstr($condition,'cold'):
+					$img = "/sites/all/modules/custom/weather_dod/images/snow.png";
+					break;
+					
+			case strstr($condition,'rain'):
+			case strstr($condition,'storm'):
+			case strstr($condition,'shower'):
+			case strstr($condition,'drizzle'):
+					$img = "/sites/all/modules/custom/weather_dod/images/rainy.png";
+					break;
+					
+			case strstr($condition,'sunny'):
+			case strstr($condition,'clear'):
+			case strstr($condition,'fair'):
+			case strstr($condition,'hot'):
+					$img = "/sites/all/modules/custom/weather_dod/images/sunny.png";
+					break;
+					
+			default:
+					$img = "/sites/all/modules/custom/weather_dod/images/sunny.png"; 
+			}
+	}
+	catch(Exception $e)
+	{
+		watchdog("weather","getIcon: ".$e->getMessage());
+	}
+	return $img;
+}

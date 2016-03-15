@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * filedepot_linkit.module
+ * Extends the linkit module to provide a URL mapping to download a filedepot file
+ */
+
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function filedepot_linkit_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'linkit' && !empty($plugin)) {
+    return "plugins/" . $plugin;
+  }
+}
+
+
+
+
+
+/**
+ * Implements hook_file_download()
+ *
+ * The file_entity module entity_access method does a module_invoke($module, 'file_download')
+ * to test/validate access. Called during the autocomplete operation when the Linkit module
+ * is returning matching files to query.
+ * Need to test if the file matching query is managed by filedepot and if user has permission to the folder.
+ */
+function filedepot_linkit_file_download() {
+  $op = arg(0);
+  if ($op == 'linkit') {
+    $args = func_get_args();
+    if (isset($args[0]) AND !empty($args[0]) AND strpos($args[0],'private://filedepot/') !== FALSE) {
+      $parmstring = str_replace('private://filedepot/','',$args[0]);
+      $parms = explode('/',$parmstring);
+      if (intval($parms[0]) > 0) {
+        $filedepot = filedepot_filedepot();
+        if ($filedepot->checkPermission($parms[0], 'view') === FALSE) {
+          return -1;
+        } else {
+          return 0;
+        }
+      } else {
+        return -1;
+      }
+    } else {
+      return 0;
+    }
+  }
+}
+
+
+/* EntityFieldQuery hook alter registered in the LinkitPluginFiledepot class getQueryInstance method
+ * Add a join on the filedepot_files table so only managed files that are in the filedepot
+ * repository are returned.
+*/
+function filedepot_linkit_query_FILEDEPOT_alter(QueryAlterableInterface $query) {
+  $query->join('filedepot_files', 'filedepot_files', 'file_managed.fid = filedepot_files.drupal_fid');
+}
+
+/* Testing to find a solution to preventing files from appearing twice in the autocomplete results
+ * A record for both the managed files result and the filedepot result (same file) are appearing
+ * Enablig this would only show the filedepot record but then you could
+ * just not enable the media file plugin for the linkit profile
+ */
+/*
+function filedepot_linkit_query_file_access_alter(QueryAlterableInterface $query) {
+  if (!isset($query->alterTags['FILEDEPOT'])) {
+    $query->condition(1, 2, '=');
+  }
+}
+*/

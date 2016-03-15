@@ -1,0 +1,457 @@
+/* ******** ORGANIZATIONAL LANDING PAGES ************* */
+
+
+
+/* OB stands for Organization Background.  Had a hell of a time getting the classes to work on the panel. */
+
+
+
+.OB {
+
+	/*background:url("images/Directorate Page Background.png") no-repeat ;*/
+
+	margin-left:-20px;
+
+	background-color: #708090;
+
+	height: 650px;
+
+	/*padding-bottom:35px; */ /*This covers the white gap where the feedback button lives.  See #wrapper in whs.css for margin-bottom:35 */
+
+	top: 15px;
+
+	margin-bottom:50px;
+
+}
+
+
+
+/* For this page only, some manipulation is needed to space out the alert window and the white bar for breadcrumbs and printer/email icons */
+
+.node-type-organizations #alert-bar{
+
+	margin-bottom:10px;
+
+}
+
+
+
+.Organization_Top {
+
+	background:white;
+
+	width:98%;
+
+	
+
+}
+
+
+
+.panels-flexible-row-OB-main-row-inside {
+
+	background:url("images/Directorate pg back drop.png") no-repeat ;
+
+	background-size: 930px 310px;
+
+	position:relative;
+
+	left:10px;
+
+	right:10px;
+
+	top:20px;
+
+	height:280px;
+
+}
+
+.Organization_Bottom {
+
+	position:relative;
+
+	left:-5px;
+
+	width:98%;
+
+	/*
+
+	margin-top:10px;
+
+	margin-left: 5px !important;
+
+	margin-bottom: 10px;
+
+	width:98%;
+
+	*/	
+
+}
+
+
+
+/* These are the captions on the bottom columns of the ODLP */
+
+.second_column_title {
+
+	background:url("images/directorate-Related Links.png");
+
+	background-size:300px 50px;
+
+	background-repeat:no-repeat;
+
+	height:56px;
+
+	width:315px;
+
+	position:relative;
+
+	top:10px;
+
+	
+
+	
+
+}
+
+
+
+.first_column_title {
+
+	background:url("images/directorate-Featured Services.png");
+
+	background-size:300px 50px;
+
+	background-repeat:no-repeat;
+
+	height:56px;
+
+	width:315px;
+
+	position:relative;
+
+	top:10px;
+
+
+
+}
+
+.third_column_title {
+
+	background:url("images/directorate-Announcements.png");
+
+	background-size:300px 50px;
+
+	background-repeat:no-repeat;
+
+	height:56px;
+
+	width:315px;
+
+	position:relative;
+
+	top:10px;
+
+
+
+}
+
+
+
+
+
+
+
+.Organization_top_first{
+
+	
+
+
+
+}
+
+.Organization_top_third {
+
+	
+
+}
+
+.Organization_top_second{
+
+	
+
+}
+
+.Organization_bottom_first{
+
+	
+
+
+
+}
+
+.Organization_bottom_third {
+
+	
+
+}
+
+.Organization_bottom_second{
+
+	
+
+}
+
+.ODLP-top-left .view-organization-directorate-top-row{
+
+	/*This is the view class -- see Organization-Directorate Landing Top Row view */
+
+	background:white;
+
+	position:relative;
+
+	left:10px;
+
+	height:210px;
+
+}
+
+.ODLP-top-left .view-content {
+
+	padding: 0 10px 10px;
+
+}
+
+
+
+.ODLP-top-left .view-content p{
+
+	line-height:1.5 !important;
+
+}
+
+
+
+.ODLP-top-middle{
+
+	/*This is the view class -- see Organization-Directorate Landing Top Row view */
+
+    color: white;
+
+    font: bold 12pt arial;
+
+    margin-left: 20px;
+
+    margin-top: 20px;
+
+}
+
+.ODLP-top-right{
+
+	/*This is the view class -- see Organization-Directorate Landing Top Row view */
+
+	margin-top:20px;
+
+	margin-left:10px;
+
+}
+
+.ODLP-title{
+
+	/*This is the view class -- see Organization-Directorate Landing Top Row view */
+
+	margin-top:20px;
+
+	margin-bottom:10px;
+
+	margin-left:10px;
+
+	color:white;
+
+	font-face:bold;
+
+	font:bold 12pt arial;
+
+}
+
+.ODLP-bottom-left{
+
+	/*This is the view class -- see Organization-Directorate Landing Bottom Row view */
+
+	/*background:url("images/directorate-Base Box.png") no-repeat ;*/
+
+	background-size:300px 100%;
+
+	position:relative;
+
+	height:210px;
+
+	width:100%;
+
+	font: bold 12pt arial;
+
+	padding-top:10px;
+
+	top: 4px;
+	z-index:1;
+	overflow:hidden;
+
+}
+
+
+
+.ODLP-bottom-middle{
+
+	/*This is the view class -- see Organization-Directorate Landing Bottom Row view */
+
+    background:url("images/directorate-Base Box.png") no-repeat ;
+
+	background-size:300px 100%;
+
+	position:relative;
+
+	height:200px;
+
+	width:100%;
+
+	font: bold 12pt arial;
+
+	padding-top:10px;
+
+	top: 4px;
+
+ }
+
+
+
+.ODLP-bottom-right{
+
+	/*This is the view class -- see Organization-Directorate Landing Bottom Row view */
+
+    background:url("images/directorate-Base Box.png") no-repeat ;
+
+	background-size:300px 100%;
+
+	position:relative;
+
+	height:200px;
+
+	width:100%;
+
+    font: bold 12pt arial;
+
+    padding-top:10px;
+
+    top: 4px
+
+}
+
+
+
+.panels-flexible-row-OB-1-inside {
+
+	/*adjust for addition of FEEDBACK button and removal of margin-top:10 from footer */
+
+	position:relative;
+
+	top:25px;
+
+	left:20px;
+
+}
+
+
+
+.ODLP-bottom-left .view-content{
+
+	padding: 0 12px 12px;
+
+	width:95%;
+
+	
+
+}
+
+
+
+.ODLP-bottom-middle .view-content{
+
+	padding: 0 12px 12px;
+
+	width:95%;
+
+}
+
+
+
+.ODLP-bottom-middle  a {
+
+	background:url("images/Chain Link Blue Icon.png") no-repeat ;
+
+	background-size:22px 20px;
+
+	margin-left:10px;
+
+	padding-left:30px;
+
+	padding-top:2px;
+
+}
+
+
+
+.ODLP-bottom-right .view-content {
+
+	padding: 0 12px 12px;
+
+	width:95%;
+
+}
+
+
+
+.OB .panels-flexible-row-OB-2 {
+
+	background: #fff !important;
+
+	padding:10px;
+
+	
+
+}
+
+/* Default director name and title selected in the content type (flag) */
+
+.default-director{
+
+	position:relative;
+
+	/*top:30px;*/
+
+	padding:10px;
+
+}
+
+
+
+.default-director .director-name{
+
+	font:bold 14pt arial;
+
+	color:white;
+
+}
+
+
+
+.default-director .director-title{
+
+	font:bold 14pt arial;
+
+	padding-top:10px;
+
+	color:white;
+
+	
+
+}

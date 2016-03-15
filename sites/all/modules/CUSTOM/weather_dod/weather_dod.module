@@ -1,0 +1,66 @@
+<?php
+
+
+//SRH  Feb 2015
+//Rewrite of broken weather routine
+
+function getWeatherDoD()
+
+{
+
+	$html = '';
+
+	
+
+	try
+
+	{
+
+
+	$LoadIt = simplexml_load_file('http://api.yr.no/weatherapi/locationforecast/1.9/?lat=38.71667;lon=77.18333');
+
+	if (!$LoadIt) {
+		//Weather value was not available when we pinged
+		$weather_temperature="N/A";
+	}else{
+	
+		foreach ($LoadIt->product->time->location->temperature->attributes() as $key=>$value) {
+			$weather[$key]=$value;
+		}
+
+
+		$weather_temperature=$weather['value'][0]*1.8+32;  //Celsius originally
+
+	}
+	
+		$html .= '<div class="weather">';
+
+		$html .= '<strong>Washington, D.C.</strong>';
+
+		$html .= '<a href="http://us.rd.yahoo.com/dailynews/rss/weather/Washington__DC/*http://weather.yahoo.com/forecast/USDC0001_f.html" 
+			title="Yahoo Weather for Washington, DC">';
+			
+
+		$html .= '<span class="temp">' . $weather_temperature . '&ordm;F</span>';
+
+		$html .= '</div>';
+
+
+//<img src="' . base_path() . 'feeds/weather/' . $weather['code'] . '.gif" class="weather-condition" title="' . $weather['condition'] . '" alt="' . $weather['condition'] . '" width="46" height="46" /></a>';
+	}
+
+	catch(Exception $e)
+
+	{
+
+		watchdog("weather","getWeatherDoD " . $e->getMessage());
+
+	}
+
+	
+
+	return $html;
+
+}
+
+

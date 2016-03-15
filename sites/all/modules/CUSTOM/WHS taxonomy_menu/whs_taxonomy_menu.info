@@ -1,0 +1,8 @@
+name = WHS Taxonomy Menu
+description = Contains custom function to create a taxonomy menu block.
+
+core = 7.x 
+project = "custom"
+package = Custom
+
+  

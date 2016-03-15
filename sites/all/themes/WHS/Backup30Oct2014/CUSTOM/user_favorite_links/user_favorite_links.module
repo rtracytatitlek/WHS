@@ -1,0 +1,72 @@
+<?php
+/* Add JS/CSS for this module to Drupal */
+drupal_add_js(drupal_get_path('module', 'user_favorite_links') . '/js/user_favorite_links.js');
+drupal_add_css(drupal_get_path('module', 'user_favorite_links') . '/css/user_favorite_links.css');
+
+/* Alter Create New Link */
+function user_favorite_links_form_user_favorite_links_node_form_alter(&$form, $form_state, $form_id) {
+	$add= $_REQUEST['add'];
+	global $user;
+
+	if ($add)
+	{
+		$cnt = count($form["field_link"]["und"]);
+		//print_r($form["field_link"]["und"]);
+		print_r($form);
+		$form['title']['#default_value'] = t('Link for ' .$cnt . '||' . $user->name);
+		$form["field_link"]["und"][0]['#default_value']['title'] = urldecode($_REQUEST['title']);
+		$form["field_link"]["und"][0]['#default_value']['url'] = gethttp() . urldecode($_REQUEST['url']);
+	}
+	else
+	{
+		$form['title']['#default_value'] = t('Link');
+	}
+}
+
+/* Check to see if server is http or https */
+function gethttp() {
+	if ( $_SERVER["HTTPS"] != 'on' )
+		return 'http://';
+	else
+		return 'https://';
+}
+
+function user_favorite_links_install() {
+	user_favorite_links_create_custom_menu();
+	user_favorite_links_create_content_type();
+	user_favorite_links_views_api();
+	user_favorite_links_views_default_views();
+	drupal_set_message('Installed');
+}
+
+/*Create default menu structure */
+function user_favorite_links_create_custom_menu() {
+	$menu = array();
+	$menu['menu_name'] = "menu-user-favorite-links";
+	$menu['title'] = "User Favorite Links Menu";
+	$menu['description'] = "Holds all personal user favorite links";
+	menu_save($menu);
+}
+
+/* Create new content type for user links */
+function user_favorite_links_create_content_type() {
+	$user_favorite_links = file_get_contents('contenttype-userlinks.inc');
+	$content_type = node_type_set_defaults($user_favorite_links);
+}
+
+/* Prepare to import view */
+function user_favorite_links_views_api() {
+	list($module, $api) = func_get_args();
+	if ($module == "views" && $api == "views_default") {
+		return array("version" => "3.0");
+	}
+}
+
+/* Import view for handling user links */
+function user_favorite_links_views_default_views() {
+	foreach (glob(dirname(__FILE__) . "views-*.inc") as $filename) {
+		include_once($filename);
+		$views[$view->name] = $view;
+	}
+	return $views;
+}

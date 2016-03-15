@@ -1,0 +1,133 @@
+/* ******** ORGANIZATIONAL LANDING PAGES ************* */
+
+/* OB stands for Organization Background.  Had a hell of a time getting the classes to work on the panel. */
+.OB {
+	background:url("images/Directorate Page Background.png") no-repeat ;
+	margin-left:-20px;
+	background-size:100% 100%;
+	height:570px;
+	padding-bottom:35px; /*This covers the white gap where the feedback button lives.  See #wrapper in whs.css for margin-bottom:35 */
+}
+.Organization_Top {
+	background:white;
+	width:98%;
+	
+}
+.Organization_Bottom {
+	margin:10px 10px 10px;
+	width:98%;	
+}
+
+.Organization_top_first{
+	
+
+}
+.Organization_top_third {
+	
+}
+.Organization_top_second{
+	
+}
+.Organization_bottom_first{
+	
+
+}
+.Organization_bottom_third {
+	
+}
+.Organization_bottom_second{
+	
+}
+.ODLP-top-left{
+	/*This is the view class -- see Organization-Directorate Landing Top Row view */
+	background:white;
+	position:relative;
+	left:10px;
+	height:210px;
+}
+.ODLP-top-left .view-content {
+	padding: 0 10px 10px;
+}
+
+.ODLP-top-left .view-content p{
+	line-height:1.5 !important;
+}
+
+.ODLP-top-middle{
+	/*This is the view class -- see Organization-Directorate Landing Top Row view */
+    color: white;
+    font: bold 12pt arial;
+    margin-left: 20px;
+    margin-top: 20px;
+}
+.ODLP-top-right{
+	/*This is the view class -- see Organization-Directorate Landing Top Row view */
+	margin-top:20px;
+	margin-left:10px;
+}
+.ODLP-title{
+	/*This is the view class -- see Organization-Directorate Landing Top Row view */
+	margin-top:20px;
+	margin-bottom:10px;
+	margin-left:10px;
+	color:white;
+	font-face:bold;
+	font:bold 12pt arial;
+}
+.ODLP-bottom-left{
+	/*This is the view class -- see Organization-Directorate Landing Bottom Row view */
+	background:url("images/Directorate Pg Box 1.png") no-repeat ;
+	position:relative;
+	top:10px;
+	left:10px;
+	height:250px;
+	width:100%;
+	padding-top:10px;
+}
+.ODLP-bottom-left .view-content{
+	padding:12px;
+	width:95%;
+	padding-top:60px;
+}
+
+.ODLP-bottom-middle{
+	/*This is the view class -- see Organization-Directorate Landing Bottom Row view */
+    background:url("images/Directorate Pg Box 2.png") no-repeat ;
+	position:relative;
+	top:10px;
+	left:10px;
+	height:250px;
+	width:100%;
+    font: bold 12pt arial;
+    padding-top:15px;
+ }
+.ODLP-bottom-middle .view-content{
+	padding:12px;
+	width:95%;
+	padding-top:60px;
+}
+
+.ODLP-bottom-middle  a {
+	background:url("images/Chain Link Blue Icon.png") no-repeat ;
+	background-size:22px 20px;
+	margin-left:10px;
+	padding-left:30px;
+	padding-top:2px;
+}
+
+.ODLP-bottom-right{
+	/*This is the view class -- see Organization-Directorate Landing Bottom Row view */
+    background:url("images/Directorate Pg Box 3.png") no-repeat ;
+	position:relative;
+	top:10px;
+	left:10px;
+	height:250px;
+	width:100%;
+    font: bold 12pt arial;
+    padding-top:10px;
+}
+.ODLP-bottom-right .view-content {
+	padding-left:12px;
+	width:95%;
+	padding-top:60px;
+}

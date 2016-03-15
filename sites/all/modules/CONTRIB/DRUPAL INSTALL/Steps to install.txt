@@ -1,0 +1,11 @@
+https://drupal.org/documentation/install
+
+System requirements
+ Step 1: Download and extract Drupal
+ Step 2: Create the database
+ Step 3: Create the settings.php file
+ Step 4: Run the installation script
+ Step 5: Set up cron
+ Step 6: Configure clean URLs
+ After Installation
+ Additional topics

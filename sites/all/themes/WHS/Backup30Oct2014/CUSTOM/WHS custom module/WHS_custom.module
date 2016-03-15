@@ -1,0 +1,477 @@
+<?php
+
+function display_variable($var) {
+	//This function displays variable information in a clean 
+	//format.  Jul 2014  SRH
+
+	echo '<pre>';
+		var_dump($var);
+	echo '</pre>';
+}
+
+
+function display_user(){
+	
+	//called from the 'display user block' located in the search region of the block area (admin->structure->block)
+	//Oct 2014
+	global $user;
+
+	//Only show names if we are not anynomous.
+	if ($user->uid!=0) {
+	
+	  try {
+
+			$user_fields=user_load($user->uid);
+
+//display_variable($user_fields);
+//die;
+
+			//Is this person an executive?  if not, then turn off the leadership tab on the homepage (quicktabs, bottom middle)
+			if ($user_fields->field_executive['und'][0]['value']!="ses") {
+				echo '<script>
+						jQuery(document).ready(function(){
+							jQuery(".quicktabs-tabs .last").hide();
+						});
+					 </script>';
+			}
+			
+			$first_name=$user_fields->field_first_name['und']['0']['value'];
+			$last_name=$user_fields->field_last_name['und']['0']['value'];
+			
+			//Get the respective OG groups.  Use node-load to get the names
+			$x=0;
+			foreach ($user_fields->og_user_node['und'] as $WhichOG) {
+				$node=node_load($WhichOG['target_id']);
+				$OG_List[$x]['name']=(strip_tags($node->title));
+				$OG_List[$x]['nid']=$WhichOG['target_id'];
+				$x=$x+1;
+			}
+		
+			$display_og='<div class="user_og_list"><select class="og_select" onchange="location=this.options[this.selectedIndex].value">';
+			$display_og.='<option class="og_option" value="/">Approved Directorate List</option>';
+			foreach ($OG_List as $OG) {
+				$display_og.='<option class="og_option" value="/node/'.$OG['nid'].'">'.$OG['name'].'</option>';
+			}
+			//Now contains a formatted "jump" list to a person's OG groups.
+			$display_og.='</select></div>';
+			
+		
+		
+			//$user_fields now contains everything (custom fields) about this user including OG group access
+			echo '<div class="user_info">';
+		
+				echo '<span class="name">'.$first_name.' '.$last_name.'</span>';
+				echo $display_og;
+		  	echo '</div>';
+		  	
+	  }//End TRY attempting to load user info	
+
+	  //Catch any errors
+	  catch (Exception $e){
+	      watchdog ("PHP","Welcome User Block ".$e->getMessage());
+	  } //End catch
+	 
+	
+	}else{
+	//IF not logged in, then show this
+	
+			echo '<div class="user_info">';		
+				echo '<span class="name">[Not logged in]</span>';
+		  	echo '</div>';
+	}
+
+}//End display_user function
+
+
+
+function whs_set_breadcrumb() {
+	//Called from function DISPLAY_WHS_BREADCRUMBS.  This will override the core breadcrumbs and allow breadcrumbs to exist in a block.
+	//Aug 2014
+	$breadcrumb=array();
+	$target_url=explode('/',request_path());
+	$composite="";
+
+	foreach ($target_url as $path_element) {
+		//Don't want "home" in the path
+		if ($path_element!="home") {
+			$composite.=$path_element.'/';
+			$temp=$composite;
+		}else{
+			$temp="home";
+		}
+		//Make sure to get rid of the trailing slash
+		
+		$breadcrumb[]='<span class="crumb_element">'.l(t($path_element), substr($temp,0,-1)).'</span>';
+	} // End looping through each component of the path and adding it to the breadcrumbs
+	
+	//Ensure the first crumb is always home.  We drop the "h" to avoid position == 0.  That's equivalent to "false" and will cause a fail in the test.
+	if (strpos($breadcrumb[0],'ome')==false) {
+		$crumb[]='<span class="crumb_element">'.l(t('Home'),'<front>').'</span>';
+		$breadcrumb=array_merge($crumb,$breadcrumb);
+	}
+
+	//Backup so that our custom breadcrumb is also stored in Drupal.  If future iterations use a drupal breadcrumb, our changes will be picked up.
+	drupal_set_breadcrumb($breadcrumb);
+
+	//Setup the CSS wrapper and separator for the crumbs.  Note -- spaces are just stored in the separator.
+	$wrapper_front='<div class="breadcrumbs">';
+	$wrapper_back='</div>';
+	$separator=" > ";
+	
+	$output=$wrapper_front;
+	
+		$counter=0;
+	
+		foreach ($breadcrumb as $display_crumb) {
+			$counter=$counter+1;
+			if (count($breadcrumb)!=$counter) {
+				$output.=$display_crumb.$separator;
+			}else{
+				$output.='<span class="last">'.$display_crumb.'</span>';			
+			}//Only include separatore up until the last item.
+		}//FOREACH Convert each breadcrumb into a display element in the path.  Add span's and the separator.
+		
+		
+	$output.=$wrapper_back;
+		
+	return $output;
+	
+} // End set_breadcrumb function
+
+function display_whs_breadcrumbs() {
+	//Just a holder function.  Called from within the BREADCRUMB block.  Keep code out of the DB.
+	echo whs_set_breadcrumb();
+	
+}
+
+function display_alpha_menu() {
+	//This function is called from the taxonomy pages.  It will display a alphabetical menu (A B C D E, etc) at the top of the
+	//page and link to the respective letters on the same page (i.e. on page anchors).  These anchors are set in a field 
+	//on the taxonomy term pages of each respective vocab and should ALWAYS be the first letter of the term itself (hence the alpha list)
+	
+	$menu="<span class='alpha-menu-list'>";
+	foreach (range('A','Z') as $letter) {
+		$menu.='<a href="#'.strtolower($letter).'" class="alpha-menu-item">'.$letter.'</a>&nbsp&nbsp';
+	}
+	
+	$menu.='</span>';
+	echo $menu;
+	
+	return;
+
+}
+
+function display_locations_category($row, $data) {
+ 	//Called from the Service Category description view.
+	//First, we need to pull all the records associated with this one name.  Limit all to PENTAGON so we don't have duplicates (see filter).  Hence, name will only appear once.  Then, once we have all the locations for this one name, we then see if there is more than one.  If so, we have multiple locations, and this record link only by the locations.  Otherwise, the name is the link and we're done.
+	//RENAMED:  "Service by Location" view -- cannot change machine name, though (expanded beyond c&p) 
+	$view='contracting_and_procurement_by_location';
+	
+	$display='block';
+	$arg="";
+	if (isset($row->name))
+		$arg=array($row->name);
+	$results=views_get_view_result($view,$display,$arg);
+	
+	$Number=count($results);
+	
+		
+	$root=$results[0]->taxonomy_vocabulary_machine_name;
+	
+	//Now get the target location.  Everything should be converted to lowercase for use in the url.
+	$location_name="";
+	if (isset($data->field_field_location[0]['rendered']['#markup']))
+		$location_name=strtolower($data->field_field_location[0]['rendered']['#markup']);
+	//Note, if location ="" then we presume pentagon.
+	if ($location_name=="") {$location_name="pentagon";}
+	
+	//Now get the on-page location anchor.
+	$anchor=strtolower(substr($arg[0],0,1));
+	if (isset($data->field_field_on_page_link[0]['rendered']['#markup']))
+		$anchor=$data->field_field_on_page_link[0]['rendered']['#markup'];
+	
+	if ($Number==1) {
+	 //We only have one match -- that means that there is only one location -- so just link the name.
+	 
+	 $target='/services/'.$root.'/'.$row->name.'/'.$location_name;
+	 $target=str_replace(' ','-',$target);
+	 $target=str_replace('_','-',$target);
+	 $disp[0]='<div class="program-title"><a id="'.$anchor.'" class="alpha-anchor">*</a> <a class="service_location" href="'.$target.'">'.t($arg[0]).'</a></div>';
+	 $title=$arg[0];
+	 $disp[1]='<span class="location_list">Continue to the <a class="service_location" href="'.$target.'">'.$title.'</a> page.';
+	return $disp;
+	} //End checking for a single location
+	
+	//If we are here, that means more than one location.  Display the name of the location, but not as a link, then show locations as links.
+	//Note -- we still need the anchor (used by the menu on the left (see template.php) and the A-Z link at the top of the screen (see CUSTOM MODULE))
+	$title=$arg[0];
+	$disp[0]='<div class="program-title"><a id="'.$anchor.'" class="alpha-anchor">*</a>&nbsp'.t($arg[0]).'</div>';
+	$disp[1]='<span class="location_list">Continue to the '.$title.' ';
+		$x=0;
+		foreach ($results as $location) {
+			
+			$disp[1].='<span class="location_item">';
+			if ($x!=0) {$disp[1].=" or ";}
+			$location_name=strtolower($location->field_field_location[0]['raw']['safe_value']);
+			$target='/services/'.$root.'/'.$row->name.'/'.$location_name;
+			$target=str_replace(' ','-',$target);
+			$target=str_replace('_','-',$target);
+			$disp[1].='<a class="service_location" href="'.$target.'">'.t($location_name).' page</a>';
+			$disp[1].='</span>';
+			$x=$x+1;
+		}//End cycling through each location
+	$disp[1].='.</span>';
+			
+return $disp;
+}//End display_location_categroy function
+
+function display_locations_program($row, $data) {
+ 	//Called from the Service program description view.
+	//First, we need to pull all the records associated with this one name.  Limit all to PENTAGON so we don't have duplicates (see filter).  Hence, name will only appear once.  Then, once we have all the locations for this one name, we then see if there is more than one.  If so, we have multiple locations, and this record link only by the locations.  Otherwise, the name is the link and we're done.
+	//Note the name is misleading;  this is for all service categories not just c&p
+	$view='contracting_and_procurement_by_location';
+	$display='block';
+	$arg="";
+	if (isset($row->name))
+		$arg=array($row->name);
+	$results=views_get_view_result($view,$display,$arg);
+	
+	$Number=count($results);
+	
+	$root=$results[0]->taxonomy_vocabulary_machine_name;
+	
+	//Now get the target location.  Everything should be converted to lowercase for use in the url.
+	$location_name="";
+	if (isset($data->field_field_location[0]['rendered']['#markup']))
+		$location_name=strtolower($data->field_field_location[0]['rendered']['#markup']);
+	//Note, if location ="" then we presume pentagon.
+	if ($location_name=="") {$location_name="pentagon";}
+	
+	//There is no on-page location anchor on the program landing page.
+	
+	if ($Number==1) {
+	 //We only have one match -- that means that there is only one location -- so just link the name.
+	 
+	 $target='/services/'.$root.'/'.$row->name.'/'.$location_name;
+	 $target=str_replace(' ','-',$target);
+	 $target=str_replace('_','-',$target);
+	 
+	 echo '<a class="service_location" href="'.$target.'">'.t($arg[0]).'</a>';
+	return;
+	} //End checking for a single location
+	
+	//If we are here, that means more than one location.  Display the name of the location, but not as a link, then show locations as links.
+	//Note -- we still need the anchor (used by the menu on the left (see template.php) and the A-Z link at the top of the screen (see CUSTOM MODULE))
+	
+	echo '<img class="program_icon" src="/sites/all/themes/WHS/images/logo-footer.png" alt="[located in custom.php]"> <span class="program_name">'.t($arg[0]).'</span>';
+	
+	echo '<span class="program_location_list">';
+		foreach ($results as $location) {
+			echo '<span class="program_location_item" style="padding-right:10px;">[';
+			$location_name=strtolower($location->field_field_location[0]['raw']['safe_value']);
+			$target='/services/'.$root.'/'.$row->name.'/'.$location_name;
+			$target=str_replace(' ','-',$target);
+			$target=str_replace('_','-',$target);
+			echo '<a class="program_service_location" href="'.$target.'">'.t($location_name).'</a>';
+			echo ']</span>';
+		}//End cycling through each location
+	echo '</span>';
+			
+		
+
+
+}//End display_location_program function
+
+function display_children_menu($TID){
+	
+	$temp=$_REQUEST['q'];
+$Tpath=explode('/',$temp);
+
+
+//$Path[0] == 'COMMUTER'
+//$Path[1] == [Commuter Type]
+//$Tpath[2] == [Commuter Type Sub-Page]
+
+//NOT LOCATION SPECIFIC
+
+//At this level, there are no menus (menus require a vocabulary, and therefore cannot work off terms).
+//So we manually create the same outline as the menu structure
+
+$TID=arg(2);
+$children=taxonomy_get_children($TID);
+
+
+
+//Cycle through each child to get name and set link
+$x=0;
+
+//asort($menu);
+
+foreach ($children as $child) {
+  $menu[$x]['name']=$child->name;
+  $target=str_replace(' ','-',$child->name);
+  $target=strtolower($target);
+  //Because we use children links (not just tax terms), we need to recreate the path manually -- from the root.  Hence the leading "/".
+  
+    $menu[$x]['link']="/";
+    foreach ($Tpath as $path) {
+      $menu[$x]['link'].=$path.'/';
+    }
+    $menu[$x]['link'].=$target;
+  
+  //echo $child->tid.'<br>';
+  //$menu[$x]['link']=drupal_lookup_path("/taxonomy/term/".$child->tid);
+  $x=$x+1;
+}  //Cycle through each child of this term (menu entry at the lowest level of the service chain)
+
+
+
+foreach ($menu as $item) {
+  echo '<div class="service_program_sub_page">';
+    echo '<a href="'.$item['link'].'">'.$item['name'].'</a>';
+  echo '</div>';
+}
+	
+} //End display_child_menu
+
+
+function display_service_category_menu($TID){
+	//called from the service CATEOGRY page left nav. 
+	$TID=arg(2);
+	$term=taxonomy_term_load($TID);
+	$menu_name=$term->name;
+	//The term name is used for the path, and does not include the truncated menu name (see below)
+	$term_name=str_replace(" ","_", $term->name);
+	$term_name=str_replace(",","", $term_name);
+	$term_name=str_replace("&","", $term_name);
+	$term_name=strtolower($term_name);
+	
+	
+	//Get each term under this parent.  Note we are changing vocabs from the service list to the individual category vocab
+	$parent=taxonomy_vocabulary_machine_name_load($term_name);
+	$max_depth=1;
+	$children=taxonomy_get_tree($parent->vid,0,$max_depth);
+	
+	//We need the actual path to call to display the page with anchors.  This is from the URL.
+	$CurrentPath=$_REQUEST['q'];
+	
+	$CurrentPath='/'.$CurrentPath;
+	$menu="";
+	$x=0;
+	foreach ($children as $child) {
+		$Anchor=strtolower(substr($child->name,0,1));
+		$menu[$x]['name']=$child->name;
+		$menu[$x]['link']=$CurrentPath.'#'.$Anchor;
+		$x=$x+1;
+	}
+	asort($menu);
+	
+	//Get rid of duplicates (same name, different location)
+	
+	for ($x=0;$x<count($menu);$x=$x+1) {
+		$counter=0;
+		for ($y=0;$y<count($menu);$y=$y+1) {
+			if ($menu[$x]['name']!="DUPE") {
+				if ($menu[$x]['name']==$menu[$y]['name']) {
+					$counter=$counter+1;
+					if ($counter==2) {
+						$menu[$x]['name']="DUPE";
+						break;	
+					}
+				}
+			}//Do not check DUPES
+		}//Go through each item, against the entire list
+	}//Search for dUPES
+	
+	echo '<div class="category_menu">';
+	foreach ($menu as $item) {
+	  if ($item['name']!="DUPE"){
+	  	echo '<div class="category_menu_item">';
+	    	echo '<a href="'.$item['link'].'">'.$item['name'].'</a>';
+	  	echo '</div>';
+	  }//No duplicates -- happens when we have the same name, but different location
+	}
+	echo '</div>';
+
+	
+}//End display service category menu
+
+
+function display_service_sub_page_menu($TID) {
+//Taxonomy SERVICE SUB PAGE landing page left menu.	
+	
+$children=taxonomy_get_children($TID);
+
+
+
+//Cycle through each child to get name and set link
+$x=0;
+foreach ($children as $child) {
+  $menu[$x]['name']=$child->name;
+  $target=str_replace(' ','-',$child->name);
+  $target=strtolower($target);
+  $menu[$x]['link']=$Tpath[3].'/'.$target.'/'.$child->tid;
+
+  $menu[$x]['link']="/taxonomy/term/".$child->tid;
+  $x=$x+1;
+}  //Cycle through each child of this term (menu entry at the lowest level of the service chain)
+
+asort($menu);
+
+
+foreach ($menu as $item) {
+  echo '<div class="service_program_sub_page">';
+    echo '<a href="'.$item['link'].'">'.$item['name'].'</a>';
+  echo '</div>';
+}
+	
+	
+} //End Display_service_sub_page_menu
+
+function test_path() {
+	$TID=arg(2);
+	
+	$parents=taxonomy_get_parents_all($TID);
+	
+	if (isset($parents[0]->field_location)) {
+		//Only select this variant if we on are on a service page.
+		//Field_location is set only on service pages.
+		if (isset($parents[1]) && $parents[1]->tid!=$parents[1]->vid) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+} //End test_path (selection criteria on sub pages for taxonomy services)
+
+function display_program_detail_button($TID){
+	//Called from the SERVICE-PROGRAM-LANDING PAGE, right column top.
+	//Get the location (position 3)
+	
+	$temp=$_REQUEST['q'];
+	$Tpath=explode('/',$temp);
+	
+	//Check the children of this taxonomy term (service program).  If one of the children is Program Details, then display this link.
+	//get current tax term
+	$TID=arg(2);
+	
+	$children=taxonomy_get_children($TID);
+	
+	
+	
+	//Cycle through each child to see if the name = Program Details
+	foreach ($children as $child) {
+	
+	  if (strtoupper($child->name)=="PROGRAM DETAILS") {
+	   $childTID=$child->tid; 
+	   $display=1;
+	    break;
+	  }
+	}
+	
+	//Did we have a match?
+	if ($display==1) {
+	  echo '<div class="program-service-bar">';
+	    echo '<img class="button_icon" src="/sites/all/themes/WHS/images/task-list.png" alt="[located in custom.php]"><a class="button_link" href="/taxonomy/term/'.$childTID.'">Program Details</a>';
+	  echo '</div>';
+	}
+} //End display_program_detail_button

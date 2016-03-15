@@ -1,0 +1,51 @@
+
+. If you want to use friendly URL, install URLRewrite module in IIS to take advantage of the support of URLRewrite in Drupal 7 from here: http://www.iis.net/download/URLRewrite
+ . Install the PHP SQL Server Driver 2.0 from here: http://www.microsoft.com/downloads/en/details.aspx?FamilyID=80e44913-24b...
+ . Create a Drupal database and user login and password in SQL Server. (Please note the "instance" name which you will need when do the install)
+ . Download and uncompress Drupal 7 in your web space
+ . Download Drupal sqlsrv module from here: http://drupal.org/project/sqlsrv
+ . Uncompress and put in this folder: sites/all/modules/sqlsrv
+ . Copy the schema folder from sqlsrv/*.inc to this folder includes/databases.
+ . Install Drupal as you normally would but the database info as follow:
+ + hostname: Please enter something like: 'YourSQLserverName\SQLInstanceName'. If you're configuring this in settings.php, it would be 'YourSQLserverName\SQLInstanceName'.
+ + username: It is a SQL Server "login" that you must create and map to a SQL Server user.
+
+
+
+Release notes
+
+
+
+
+Updated release for Drupal 7.4.
+ 
+Changes since 7.x-1.0:
+ •#1205272 by Damien Tournoud: update the driver after changes in 7.4 database engine API (#561422).
+ 
+Installation instructions
+ 
+IIS and Drupal
+ 
+Set up your IIS server in the configuration recommended by Drupal (using the URLRewrite module). Drupal 7 now ships with a web.config file, which should make that easy.
+ 
+PHP driver for SQL Server
+ 
+Install the PHP SQL Server Driver 2.0 from Microsoft.
+ 
+Drupal and the SQL Server driver
+ 
+Uncompress Drupal in the web root. Uncompress this driver as sites/all/modules/sqlsrv, and copy or link the sqlsrv directory found inside it in includes/databases.
+ 
+Initial database set up
+ •Create a SQL Server database for Drupal. Both SQL Server (full edition) and SQL Server Express are supported. The database must be created using a unicode case-insensitive collation (for example the default SQL_Latin1_General_CP1_CI_AS).
+ •Install Drupal has you normally would, selecting SQL Server in the database option list.
+ •When you are prompted for the hostname, enter the SQL Server instance, as in LOCAL\SQLEXPRESS. If you're configuring this in settings.php, it would be LOCAL\\SQLEXPRESS
+ •The "username" is a SQL Server "login" that you must create and map to a SQL Server user.
+ 
+Changes since 7.x-1.0-rc3
+ •Sanitize comments after #1105848.
+ •#1170760: Only remove proper indexes when dropping the related objects.
+ •Restore the two-step PK creation. Breaks on Azure, but at least does not break on SQL Server.
+ •#1170760: Recreate the primary key.
+ •#1170760: Remove check constraints in dropFieldRelatedObjects().
+ •Implement additional tests for #1170760.
